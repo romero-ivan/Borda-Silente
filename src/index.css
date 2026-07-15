@@ -104,3 +104,122 @@
   border: 3px double var(--color-wabi-wood);
 }
 
+/* ==========================================
+   Volcanic Dark Wabi-Sabi Theme Overrides
+   ========================================== */
+
+body {
+  background-color: #121411 !important;
+  color: #FAF8F5 !important;
+}
+
+/* Background overrides */
+.bg-\[\#FDFCFB\] {
+  background-color: #121411 !important;
+}
+.bg-\[\#FAF9F6\] {
+  background-color: #1B1E19 !important;
+}
+.bg-\[\#F5F3EF\] {
+  background-color: #21251E !important;
+}
+.bg-\[\#F8F6F2\] {
+  background-color: #161814 !important;
+}
+.bg-white {
+  background-color: #121411 !important;
+}
+
+/* Text overrides */
+.text-\[\#2D2D2D\] {
+  color: #FAF8F5 !important;
+}
+.text-\[\#2C3627\] {
+  color: #E5B181 !important;
+}
+.text-\[\#8C857B\] {
+  color: #A39D90 !important;
+}
+.text-black {
+  color: #FAF8F5 !important;
+}
+
+/* Border overrides */
+.border-\[\#E5E1D8\] {
+  border-color: #2D3329 !important;
+}
+.border-\[\#D1CDC3\] {
+  border-color: #3A4135 !important;
+}
+
+/* Input fields overrides */
+input[type="date"],
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+  background-color: #1A1D18 !important;
+  color: #FAF8F5 !important;
+  border-color: #3A4135 !important;
+}
+input::placeholder {
+  color: rgba(163, 157, 144, 0.4) !important;
+}
+
+/* Primary color swaps (forest green -> golden ocher) */
+.border-\[\#2C3627\] {
+  border-color: #E5B181 !important;
+}
+.ring-\[\#2C3627\] {
+  --tw-ring-color: #E5B181 !important;
+}
+.bg-\[\#2C3627\] {
+  background-color: #E5B181 !important;
+}
+.bg-\[\#2C3627\/5\] {
+  background-color: rgba(229, 177, 129, 0.08) !important;
+}
+.bg-\[\#2C3627\/40\] {
+  background-color: rgba(229, 177, 129, 0.15) !important;
+  border-color: rgba(229, 177, 129, 0.3) !important;
+}
+
+/* Contrast fix for dark text on primary gold elements */
+.bg-\[\#2C3627\],
+.bg-\[\#2C3627\] .text-\[\#FDFCFB\],
+.bg-\[\#2C3627\].text-\[\#FDFCFB\] {
+  color: #121411 !important;
+}
+
+/* Wabi-paper dots styling on dark background */
+.wabi-paper {
+  background-image: radial-gradient(rgba(229, 177, 129, 0.015) 1.5px, transparent 0) !important;
+}
+
+/* Glass premium panel adjustments */
+.glass-premium {
+  background: rgba(18, 20, 17, 0.8) !important;
+  border: 1px solid rgba(229, 177, 129, 0.1) !important;
+}
+
+.glass-premium-dark {
+  background: rgba(18, 20, 17, 0.95) !important;
+  border: 1px solid rgba(229, 177, 129, 0.15) !important;
+}
+
+/* Invoices and cards styling adjustments */
+.print\:bg-white {
+  background-color: #121411 !important;
+}
+
+/* Wax stamp visibility adjustment */
+.border-\[\#2C3627\/10\] {
+  border-color: rgba(229, 177, 129, 0.15) !important;
+}
+.text-\[\#2C3627\/30\] {
+  color: rgba(229, 177, 129, 0.3) !important;
+}
+.text-\[\#2C3627\/40\] {
+  color: rgba(229, 177, 129, 0.4) !important;
+}
+
