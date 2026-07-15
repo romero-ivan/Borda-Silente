@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, Users, Shield, Compass, Sparkles, AlertCircle, FileText, 
   Mail, Phone, MapPin, Flame, Thermometer 
@@ -41,8 +41,15 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [lastBookedEmail, setLastBookedEmail] = useState('');
 
-  // Auto-scroll to booking form on mobile when room selection changes
+  const isFirstRender = useRef(true);
+
+  // Auto-scroll to booking form on mobile when room selection changes (skips initial mount)
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (window.innerWidth < 1024) {
       const element = document.getElementById('booking-engine-card');
       if (element) {
