@@ -893,7 +893,7 @@ export default function ReceptionistView({
 
               {/* Task table list (8 cols) */}
               <div className="lg:col-span-8 space-y-4">
-                <div className="border border-[#E5E1D8] rounded-xl overflow-hidden bg-white shadow-3xs">
+                <div className="border border-[#E5E1D8] rounded-xl overflow-x-auto bg-white shadow-3xs">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-[#E5E1D8] font-mono text-[9px] text-[#8C857B] uppercase tracking-widest bg-[#FAF9F6]">
@@ -978,7 +978,7 @@ export default function ReceptionistView({
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block font-mono text-[10px] uppercase tracking-wider text-[#8C857B] font-semibold">Fecha de Entrada</label>
                   <input 
