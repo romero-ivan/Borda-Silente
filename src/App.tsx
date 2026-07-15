@@ -12,6 +12,26 @@ import ReceptionistView from './components/ReceptionistView.js';
 import AdminView from './components/AdminView.js';
 import InvoiceModal from './components/InvoiceModal.js';
 import ChatBox from './components/ChatBox.js';
+import { INITIAL_DATA } from './initialData.js';
+
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
+const getLocalDb = (): any => {
+  const local = localStorage.getItem('borda_silente_db');
+  if (local) {
+    try {
+      return JSON.parse(local);
+    } catch {
+      // ignore
+    }
+  }
+  localStorage.setItem('borda_silente_db', JSON.stringify(INITIAL_DATA));
+  return INITIAL_DATA;
+};
+
+const saveLocalDb = (data: any) => {
+  localStorage.setItem('borda_silente_db', JSON.stringify(data));
+};
 
 export default function App() {
   const [currentRole, setCurrentRole] = useState<SenderRole>('consumer');
@@ -32,6 +52,19 @@ export default function App() {
   // Poll database state periodically to keep client-receptionist-admin synced
   const fetchHotelData = async (showLoading = false) => {
     if (showLoading) setLoading(true);
+    
+    if (isProduction) {
+      const db = getLocalDb();
+      setRooms(db.rooms || []);
+      setBookings(db.bookings || []);
+      setEmployees(db.employees || []);
+      setSubcontractors(db.subcontractors || []);
+      setChats(db.chats || []);
+      setError('');
+      if (showLoading) setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/hotel/data');
       if (res.ok) {
@@ -43,11 +76,23 @@ export default function App() {
         setChats(data.chats || []);
         setError('');
       } else {
-        setError('Error al recuperar datos del servidor.');
+        const db = getLocalDb();
+        setRooms(db.rooms || []);
+        setBookings(db.bookings || []);
+        setEmployees(db.employees || []);
+        setSubcontractors(db.subcontractors || []);
+        setChats(db.chats || []);
+        setError('');
       }
     } catch (err) {
-      console.error('Failed to sync hotel database', err);
-      setError('No se pudo conectar con el servidor.');
+      console.error('Failed to sync hotel database, falling back to local storage', err);
+      const db = getLocalDb();
+      setRooms(db.rooms || []);
+      setBookings(db.bookings || []);
+      setEmployees(db.employees || []);
+      setSubcontractors(db.subcontractors || []);
+      setChats(db.chats || []);
+      setError('');
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -71,6 +116,51 @@ export default function App() {
     checkOut: string;
     platform: BookingPlatform;
   }) => {
+    if (isProduction) {
+      const db = getLocalDb();
+      const room = db.rooms.find((r: any) => r.id === bookingData.roomId);
+      if (!room) throw new Error('La habitación especificada no existe.');
+
+      const dateIn = new Date(bookingData.checkIn);
+      const dateOut = new Date(bookingData.checkOut);
+      const diffTime = Math.abs(dateOut.getTime() - dateIn.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+      const totalPrice = room.price * diffDays;
+
+      const bookingId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
+      const invoiceIndex = db.bookings.length + 213;
+      const invoiceNumber = `BS-2026-0${invoiceIndex}`;
+
+      const newBooking: Booking = {
+        id: bookingId,
+        guestName: bookingData.guestName,
+        guestEmail: bookingData.guestEmail,
+        roomId: room.id,
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        totalPrice,
+        platform: bookingData.platform || 'web',
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+        invoiceNumber
+      };
+
+      const todayStr = '2026-07-14';
+      if (bookingData.checkIn <= todayStr && bookingData.checkOut >= todayStr) {
+        room.status = 'occupied';
+      }
+
+      db.bookings.push(newBooking);
+      saveLocalDb(db);
+      await fetchHotelData(false);
+
+      setActiveInvoice({
+        booking: newBooking,
+        room
+      });
+      return;
+    }
+
     try {
       const res = await fetch('/api/hotel/book', {
         method: 'POST',
@@ -83,10 +173,8 @@ export default function App() {
       }
       
       const resData = await res.json();
-      // Instantly refresh state
       await fetchHotelData(false);
       
-      // Auto open invoice for client review
       const matchedRoom = rooms.find(r => r.id === bookingData.roomId);
       if (matchedRoom) {
         setActiveInvoice({
@@ -95,7 +183,48 @@ export default function App() {
         });
       }
     } catch (err: any) {
-      throw err;
+      // Fallback
+      const db = getLocalDb();
+      const room = db.rooms.find((r: any) => r.id === bookingData.roomId);
+      if (!room) throw new Error('La habitación especificada no existe.');
+
+      const dateIn = new Date(bookingData.checkIn);
+      const dateOut = new Date(bookingData.checkOut);
+      const diffTime = Math.abs(dateOut.getTime() - dateIn.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+      const totalPrice = room.price * diffDays;
+
+      const bookingId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
+      const invoiceIndex = db.bookings.length + 213;
+      const invoiceNumber = `BS-2026-0${invoiceIndex}`;
+
+      const newBooking: Booking = {
+        id: bookingId,
+        guestName: bookingData.guestName,
+        guestEmail: bookingData.guestEmail,
+        roomId: room.id,
+        checkIn: bookingData.checkIn,
+        checkOut: bookingData.checkOut,
+        totalPrice,
+        platform: bookingData.platform || 'web',
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+        invoiceNumber
+      };
+
+      const todayStr = '2026-07-14';
+      if (bookingData.checkIn <= todayStr && bookingData.checkOut >= todayStr) {
+        room.status = 'occupied';
+      }
+
+      db.bookings.push(newBooking);
+      saveLocalDb(db);
+      await fetchHotelData(false);
+
+      setActiveInvoice({
+        booking: newBooking,
+        room
+      });
     }
   };
 
@@ -108,6 +237,21 @@ export default function App() {
         ? 'Administrador General' 
         : 'Invitado Web';
 
+    if (isProduction) {
+      const db = getLocalDb();
+      const newMessage: ChatMessage = {
+        id: `MSG-${Math.floor(1000 + Math.random() * 9000)}`,
+        senderRole: currentRole,
+        senderName,
+        message: messageText,
+        timestamp: new Date().toISOString()
+      };
+      db.chats.push(newMessage);
+      saveLocalDb(db);
+      await fetchHotelData(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/hotel/chat', {
         method: 'POST',
@@ -119,16 +263,38 @@ export default function App() {
         })
       });
       if (res.ok) {
-        // Sync message log immediately
         await fetchHotelData(false);
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-      console.error('Error sending message', err);
+      const db = getLocalDb();
+      const newMessage: ChatMessage = {
+        id: `MSG-${Math.floor(1000 + Math.random() * 9000)}`,
+        senderRole: currentRole,
+        senderName,
+        message: messageText,
+        timestamp: new Date().toISOString()
+      };
+      db.chats.push(newMessage);
+      saveLocalDb(db);
+      await fetchHotelData(false);
     }
   };
 
   // Action: Housekeeping status
   const handleUpdateRoomStatus = async (roomId: number, status: RoomStatus) => {
+    if (isProduction) {
+      const db = getLocalDb();
+      const room = db.rooms.find((r: any) => r.id === roomId);
+      if (room) {
+        room.status = status;
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch(`/api/hotel/rooms/${roomId}/status`, {
         method: 'PUT',
@@ -137,14 +303,40 @@ export default function App() {
       });
       if (res.ok) {
         await fetchHotelData(false);
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-      console.error('Failed to change room status', err);
+      const db = getLocalDb();
+      const room = db.rooms.find((r: any) => r.id === roomId);
+      if (room) {
+        room.status = status;
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
     }
   };
 
   // Action: Clock-in employee
   const handleClockEmployee = async (employeeId: string, action: 'in' | 'out') => {
+    if (isProduction) {
+      const db = getLocalDb();
+      const emp = db.employees.find((e: any) => e.id === employeeId);
+      if (emp) {
+        if (action === 'in') {
+          emp.status = 'present';
+          const now = new Date();
+          emp.todayClockIn = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        } else {
+          emp.status = 'absent';
+          delete emp.todayClockIn;
+        }
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/employees/clock', {
         method: 'POST',
@@ -153,14 +345,46 @@ export default function App() {
       });
       if (res.ok) {
         await fetchHotelData(false);
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-      console.error(err);
+      const db = getLocalDb();
+      const emp = db.employees.find((e: any) => e.id === employeeId);
+      if (emp) {
+        if (action === 'in') {
+          emp.status = 'present';
+          const now = new Date();
+          emp.todayClockIn = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        } else {
+          emp.status = 'absent';
+          delete emp.todayClockIn;
+        }
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
     }
   };
 
   // Action: Log leave (vacations/sick)
   const handleLogLeave = async (employeeId: string, leaveType: 'vacation' | 'sick', days: number) => {
+    if (isProduction) {
+      const db = getLocalDb();
+      const emp = db.employees.find((e: any) => e.id === employeeId);
+      if (emp) {
+        if (leaveType === 'vacation') {
+          emp.status = 'vacation';
+          emp.vacationsTaken = (emp.vacationsTaken || 0) + days;
+        } else {
+          emp.status = 'sick';
+          emp.sickLeaves = (emp.sickLeaves || 0) + 1;
+        }
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/employees/leave', {
         method: 'POST',
@@ -169,14 +393,46 @@ export default function App() {
       });
       if (res.ok) {
         await fetchHotelData(false);
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-      console.error(err);
+      const db = getLocalDb();
+      const emp = db.employees.find((e: any) => e.id === employeeId);
+      if (emp) {
+        if (leaveType === 'vacation') {
+          emp.status = 'vacation';
+          emp.vacationsTaken = (emp.vacationsTaken || 0) + days;
+        } else {
+          emp.status = 'sick';
+          emp.sickLeaves = (emp.sickLeaves || 0) + 1;
+        }
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
     }
   };
 
   // Action: Add maintenance ticket
   const handleAddSubcontractorTicket = async (subcontractorId: string, title: string) => {
+    if (isProduction) {
+      const db = getLocalDb();
+      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
+      if (sub) {
+        const ticketId = `TKT-${Math.floor(100 + Math.random() * 900)}`;
+        sub.activeTickets.push({
+          id: ticketId,
+          title,
+          status: 'open',
+          date: new Date().toISOString().split('T')[0]
+        });
+        sub.status = 'pending-review';
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/hotel/subcontractors/ticket', {
         method: 'POST',
@@ -185,14 +441,45 @@ export default function App() {
       });
       if (res.ok) {
         await fetchHotelData(false);
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-      console.error(err);
+      const db = getLocalDb();
+      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
+      if (sub) {
+        const ticketId = `TKT-${Math.floor(100 + Math.random() * 900)}`;
+        sub.activeTickets.push({
+          id: ticketId,
+          title,
+          status: 'open',
+          date: new Date().toISOString().split('T')[0]
+        });
+        sub.status = 'pending-review';
+        saveLocalDb(db);
+        await fetchHotelData(false);
+      }
     }
   };
 
   // Action: Resolve maintenance ticket
   const handleResolveSubcontractorTicket = async (subcontractorId: string, ticketId: string) => {
+    if (isProduction) {
+      const db = getLocalDb();
+      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
+      if (sub) {
+        const ticket = sub.activeTickets.find((t: any) => t.id === ticketId);
+        if (ticket) {
+          ticket.status = 'resolved';
+          const hasOpen = sub.activeTickets.some((t: any) => t.status === 'open');
+          sub.status = hasOpen ? 'pending-review' : 'ok';
+          saveLocalDb(db);
+          await fetchHotelData(false);
+        }
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/hotel/subcontractors/resolve', {
         method: 'POST',
@@ -201,15 +488,29 @@ export default function App() {
       });
       if (res.ok) {
         await fetchHotelData(false);
+      } else {
+        throw new Error('API failed');
       }
     } catch (err) {
-      console.error(err);
+      const db = getLocalDb();
+      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
+      if (sub) {
+        const ticket = sub.activeTickets.find((t: any) => t.id === ticketId);
+        if (ticket) {
+          ticket.status = 'resolved';
+          const hasOpen = sub.activeTickets.some((t: any) => t.status === 'open');
+          sub.status = hasOpen ? 'pending-review' : 'ok';
+          saveLocalDb(db);
+          await fetchHotelData(false);
+        }
+      }
     }
   };
 
   const handleOpenInvoiceModal = (booking: Booking, room: Room) => {
     setActiveInvoice({ booking, room });
   };
+
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] text-[#2D2D2D] flex flex-col font-sans selection:bg-[#E5E1D8] selection:text-[#8C857B]">
