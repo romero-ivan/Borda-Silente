@@ -183,20 +183,32 @@ export default function InvoiceModal({ isOpen, onClose, booking, room }: Invoice
         {/* Print only instructions for formatting */}
         <style>{`
           @media print {
-            body * {
-              visibility: hidden;
+            /* Hide all main app content wrappers to prevent blank pages */
+            #root > *:not(.fixed) {
+              display: none !important;
             }
-            #invoice-modal-content, #invoice-modal-content * {
-              visibility: visible;
+            /* Format modal backdrop for printing */
+            .fixed.inset-0.z-50 {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              background: transparent !important;
+              backdrop-filter: none !important;
+              display: block !important;
+              padding: 0 !important;
             }
             #invoice-modal-content {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-              border: none;
-              box-shadow: none;
-              background: #FDFCFB !important;
+              border: none !important;
+              box-shadow: none !important;
+              background: #FAF8F5 !important;
+              color: #2D2D2D !important;
+              max-height: none !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              position: static !important;
+              overflow: visible !important;
             }
             .print\\:hidden {
               display: none !important;

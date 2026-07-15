@@ -19,12 +19,12 @@ export default function ChatBox({ currentRole, currentUserName, chatMessages, on
   const [inputText, setInputText] = useState('');
   const [isOpen, setIsOpen] = useState(!compact);
   const [isSending, setIsSending] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom whenever messages update or chat is toggled
+  // Scroll to bottom of container whenever messages update or chat is toggled
   useEffect(() => {
-    if (isOpen) {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isOpen && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chatMessages, isOpen]);
 
@@ -106,7 +106,7 @@ export default function ChatBox({ currentRole, currentUserName, chatMessages, on
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#FDFCFB]">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#FDFCFB]">
         {chatMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-6 text-xs text-[#8C857B]">
             <Sparkles className="w-6 h-6 text-[#E5B181] mb-2 animate-pulse" />
@@ -139,7 +139,7 @@ export default function ChatBox({ currentRole, currentUserName, chatMessages, on
             );
           })
         )}
-        <div ref={chatEndRef} />
+
       </div>
 
       {/* Input */}

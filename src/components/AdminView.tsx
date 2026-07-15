@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   TrendingUp, Activity, ShieldAlert, Users, 
   Settings, Clock, Sparkles, Building2, Hammer, 
@@ -33,6 +33,25 @@ export default function AdminView({
   onResolveSubcontractorTicket
 }: AdminViewProps) {
   const [activeTab, setActiveTab] = useState<'kpis' | 'cameras' | 'employees' | 'subcontractors'>('kpis');
+
+  const isFirstRender = useRef(true);
+
+  // Auto-scroll to content area on mobile when activeTab changes (skips initial mount)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (window.innerWidth < 1024) {
+      const element = document.getElementById('admin-content-area');
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
+    }
+  }, [activeTab]);
 
   // Live Energy telemetry state
   const [energy, setEnergy] = useState<EnergyStats>({
@@ -229,7 +248,7 @@ export default function AdminView({
       </div>
 
       {/* Main Panel Content Container */}
-      <div className="lg:col-span-9 bg-[#FDFCFB] border border-[#E5E1D8] p-6 rounded-xs">
+      <div id="admin-content-area" className="lg:col-span-9 bg-[#FDFCFB] border border-[#E5E1D8] p-6 rounded-xs">
         
         {/* TAB 1: FINANCIALS & PERFORMANCE */}
         {activeTab === 'kpis' && (
