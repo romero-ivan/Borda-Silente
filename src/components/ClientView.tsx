@@ -531,17 +531,10 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
                   <span className="text-[#2D2D2D]">{iva.toFixed(2)}€</span>
                 </div>
                 
-                {/* Total sum with high prominence and decorative authenticity seal */}
+                {/* Total sum with high prominence */}
                 <div className="flex justify-between font-bold text-sm text-[#2D2D2D] border-t border-[#E5E1D8]/60 pt-3 mt-2.5 relative z-10">
                   <span className="font-sans font-medium text-xs text-[#2C3627]">Total de la Estancia:</span>
                   <span className="text-lg text-[#2C3627] font-mono font-bold">{total.toFixed(2)}€</span>
-                </div>
-
-                {/* Simulated Traditional Wax Stamp Badge Centered as Watermark */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border border-[#2C3627]/5 rounded-full flex flex-col items-center justify-center text-[5.5px] text-[#2C3627]/20 select-none uppercase pointer-events-none font-sans font-bold leading-none tracking-tighter origin-center rotate-12 z-0">
-                  <span>BORDA</span>
-                  <span className="text-[#2C3627]/30 text-[7.5px] italic font-serif py-0.5">SILENTE</span>
-                  <span>AUTÉNTICA</span>
                 </div>
               </div>
 
