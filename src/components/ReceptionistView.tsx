@@ -443,19 +443,15 @@ export default function ReceptionistView({
           <div className="space-y-2.5 text-[10.5px] font-mono">
             <div className="flex justify-between items-center">
               <span className="text-[#8C857B]">🚖 Taxis Valle Ansó</span>
-              <a href="tel:+34974348012" className="text-[#2C3627] font-semibold hover:underline">+34 974 348 012</a>
+              <a href="tel:974348012" className="text-[#2C3627] font-semibold hover:underline">974 348 012</a>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-[#8C857B]">🔧 Mantenimiento</span>
-              <a href="tel:+34689124355" className="text-[#2C3627] font-semibold hover:underline">+34 689 124 355</a>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[#8C857B]">🚑 Emergencias Nac.</span>
-              <a href="tel:112" className="text-red-700 font-bold hover:underline">112</a>
+              <a href="tel:689124355" className="text-[#2C3627] font-semibold hover:underline">689 124 355</a>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-[#8C857B]">🏥 Centro Salud Jaca</span>
-              <a href="tel:+34974370102" className="text-[#2C3627] font-semibold hover:underline">+34 974 370 102</a>
+              <a href="tel:974370102" className="text-[#2C3627] font-semibold hover:underline">974 370 102</a>
             </div>
           </div>
         </div>
