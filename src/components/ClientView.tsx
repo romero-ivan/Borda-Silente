@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Users, Shield, Compass, Sparkles, AlertCircle, FileText, 
   Mail, Phone, MapPin, Flame, Thermometer 
@@ -40,6 +40,18 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [lastBookedEmail, setLastBookedEmail] = useState('');
+
+  // Auto-scroll to booking form on mobile when room selection changes
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      const element = document.getElementById('booking-engine-card');
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      }
+    }
+  }, [selectedRoomId]);
 
   // Selected Room
   const selectedRoom = rooms.find(r => r.id === selectedRoomId);
@@ -417,7 +429,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
 
         {/* RIGHT: Booking Engine & Folio Quote (5 cols on lg) */}
         <div className="lg:col-span-5 space-y-8">
-          <div className="bg-[#FAF9F6] border-double-fine p-7 space-y-6 rounded-xl shadow-lg relative overflow-hidden">
+          <div id="booking-engine-card" className="bg-[#FAF9F6] border-double-fine p-7 space-y-6 rounded-xl shadow-lg relative overflow-hidden">
             {/* Subtle paper grain texture simulation */}
             <div className="absolute inset-0 bg-repeat bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDAyIi8+Cjwvc3ZnPg==')] pointer-events-none" />
 
