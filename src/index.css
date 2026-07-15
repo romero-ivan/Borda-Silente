@@ -194,6 +194,17 @@ select {
   background-color: #1A1D18 !important;
   color: #FAF8F5 !important;
   border-color: #3A4135 !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important; /* allows inputs to shrink within grid layouts on mobile */
+}
+
+/* Force iOS Safari/Chrome date inputs to obey width and layout constraints */
+input[type="date"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
 input::placeholder {
   color: rgba(163, 157, 144, 0.4) !important;
