@@ -1,0 +1,37 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Geometric Balance Theme Colors */
+  --color-wabi-sand: #FDFCFB;      /* Plaster luxury off-white */
+  --color-wabi-ash: #F5F3EF;       /* Soft geometric light gray */
+  --color-wabi-wood: #8C857B;      /* Warm elegant taupe/gray accent */
+  --color-wabi-charcoal: #2D2D2D;  /* Neutral deep charcoal text */
+  --color-wabi-slate: #E5B181;     /* Warm ocher / golden wheat status */
+  --color-wabi-pine: #2C3627;      /* Elegant forest/moss dark green */
+}
+
+/* Custom styling for sleek scrolling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-wabi-sand);
+}
+::-webkit-scrollbar-thumb {
+  background: #D4CEBF;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-wabi-wood);
+}
