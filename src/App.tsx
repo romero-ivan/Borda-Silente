@@ -513,7 +513,7 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] text-[#2D2D2D] flex flex-col font-sans selection:bg-[#E5E1D8] selection:text-[#8C857B]">
+    <div className="min-h-screen bg-[#FDFCFB] wabi-paper text-[#2D2D2D] flex flex-col font-sans selection:bg-[#E5E1D8] selection:text-[#8C857B]">
       
       {/* 1. Demostración Role Switcher (Always available at the top for review) */}
       <RoleSwitcher currentRole={currentRole} onChangeRole={setCurrentRole} />

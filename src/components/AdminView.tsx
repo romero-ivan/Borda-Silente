@@ -52,14 +52,47 @@ export default function AdminView({
   // Fetch live energy stats
   useEffect(() => {
     const fetchEnergy = async () => {
+      let fetched = false;
       try {
         const res = await fetch('/api/hotel/energy');
         if (res.ok) {
           const data = await res.json();
           setEnergy(data);
+          fetched = true;
         }
       } catch (err) {
-        console.error('Error fetching energy telemetry', err);
+        // Fallback to local simulation
+      }
+
+      if (!fetched) {
+        setEnergy(prev => {
+          const now = new Date();
+          const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          
+          // Solar fluctuates naturally during day/night cycles
+          const hour = now.getHours();
+          const baseSolar = (hour > 6 && hour < 20) ? Math.sin((hour - 6) / 14 * Math.PI) * 15 : 0;
+          const solarChange = (Math.random() - 0.5) * 0.5;
+          const nextSolar = Math.max(0, parseFloat((baseSolar + solarChange).toFixed(1)));
+          
+          // Refugio total load is roughly 15-18 kW. Grid handles what solar doesn't cover.
+          const load = 16.2 + (Math.random() - 0.5) * 1.2;
+          const nextGrid = Math.max(0.5, parseFloat((load - nextSolar).toFixed(1)));
+          
+          // Biomass water temperature fluctuates slightly around 74 degrees C
+          const nextBiomass = parseFloat((prev.biomassTempC + (Math.random() - 0.5) * 0.4).toFixed(1));
+          
+          // Spring water flow fluctuates slightly around 6.5 L/min
+          const nextWater = parseFloat(Math.max(4.0, prev.waterFlowLpm + (Math.random() - 0.5) * 0.2).toFixed(1));
+          
+          return {
+            timestamp: timeStr,
+            gridPowerkW: nextGrid,
+            solarPowerkW: nextSolar,
+            biomassTempC: nextBiomass,
+            waterFlowLpm: nextWater
+          };
+        });
       }
     };
 
@@ -107,13 +140,13 @@ export default function AdminView({
             <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-wider">Supervisión y Recursos</p>
           </div>
 
-          <div className="flex flex-col gap-1 font-mono text-xs">
+          <div className="flex flex-col gap-1.5 font-mono text-xs">
             <button 
               onClick={() => setActiveTab('kpis')}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xs text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'kpis' 
-                  ? 'bg-[#2D2D2D] text-[#FDFCFB]' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <TrendingUp className="w-4 h-4 shrink-0" />
@@ -121,10 +154,10 @@ export default function AdminView({
             </button>
             <button 
               onClick={() => setActiveTab('cameras')}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xs text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'cameras' 
-                  ? 'bg-[#2D2D2D] text-[#FDFCFB]' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <Camera className="w-4 h-4 shrink-0" />
@@ -132,10 +165,10 @@ export default function AdminView({
             </button>
             <button 
               onClick={() => setActiveTab('employees')}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xs text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'employees' 
-                  ? 'bg-[#2D2D2D] text-[#FDFCFB]' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <Users className="w-4 h-4 shrink-0" />
@@ -143,10 +176,10 @@ export default function AdminView({
             </button>
             <button 
               onClick={() => setActiveTab('subcontractors')}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xs text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'subcontractors' 
-                  ? 'bg-[#2D2D2D] text-[#FDFCFB]' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <Building2 className="w-4 h-4 shrink-0" />
@@ -207,26 +240,26 @@ export default function AdminView({
             </div>
 
             {/* Metric Blocks */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="border border-[#E5E1D8] p-4 rounded-xs bg-[#FDFCFB]">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Ingresos Totales</span>
-                <p className="font-mono text-xl font-bold text-[#8C857B] mt-1">{totalRevenue.toFixed(2)}€</p>
-                <span className="text-[10px] text-[#8C857B] font-mono mt-0.5 inline-block">100% de ocupación web</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] shadow-3xs relative overflow-hidden group hover:border-[#2C3627] transition-all duration-300 rounded-lg">
+                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#8C857B] block">Ingresos Totales</span>
+                <p className="font-serif text-3xl font-light text-[#2C3627] mt-2 group-hover:scale-102 transition-transform duration-300 origin-left">{totalRevenue.toFixed(2)}€</p>
+                <span className="text-[9px] text-[#8C857B] font-mono mt-2 block border-t border-[#F5F3EF] pt-2">100% de ocupación web</span>
               </div>
-              <div className="border border-[#E5E1D8] p-4 rounded-xs bg-[#FDFCFB]">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Ocupación Hoy</span>
-                <p className="font-mono text-xl font-bold text-[#2D2D2D] mt-1">{occupancyPercentage}%</p>
-                <span className="text-[10px] text-[#8C857B] font-mono mt-0.5 inline-block">{occupiedRoomsCount} de {rooms.length} habitadas</span>
+              <div className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] shadow-3xs relative overflow-hidden group hover:border-[#2C3627] transition-all duration-300 rounded-lg">
+                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#8C857B] block">Ocupación Hoy</span>
+                <p className="font-serif text-3xl font-light text-[#2C3627] mt-2 group-hover:scale-102 transition-transform duration-300 origin-left">{occupancyPercentage}%</p>
+                <span className="text-[9px] text-[#8C857B] font-mono mt-2 block border-t border-[#F5F3EF] pt-2">{occupiedRoomsCount} de {rooms.length} habitadas</span>
               </div>
-              <div className="border border-[#E5E1D8] p-4 rounded-xs bg-[#FDFCFB]">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Reservas Totales</span>
-                <p className="font-mono text-xl font-bold text-[#2C3627] mt-1">{totalBookingsCount}</p>
-                <span className="text-[10px] text-[#8C857B] font-mono mt-0.5 inline-block">Ventas directas y agencias</span>
+              <div className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] shadow-3xs relative overflow-hidden group hover:border-[#2C3627] transition-all duration-300 rounded-lg">
+                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#8C857B] block">Reservas Totales</span>
+                <p className="font-serif text-3xl font-light text-[#2C3627] mt-2 group-hover:scale-102 transition-transform duration-300 origin-left">{totalBookingsCount}</p>
+                <span className="text-[9px] text-[#8C857B] font-mono mt-2 block border-t border-[#F5F3EF] pt-2">Ventas directas y agencias</span>
               </div>
-              <div className="border border-[#E5E1D8] p-4 rounded-xs bg-[#FDFCFB]">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Personal Hoy</span>
-                <p className="font-mono text-xl font-bold text-[#2D2D2D] mt-1">{activeStaffCount}</p>
-                <span className="text-[10px] text-[#2C3627] font-mono mt-0.5 inline-block">Fichados en recepción</span>
+              <div className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] shadow-3xs relative overflow-hidden group hover:border-[#2C3627] transition-all duration-300 rounded-lg">
+                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-[#8C857B] block">Personal Hoy</span>
+                <p className="font-serif text-3xl font-light text-[#2C3627] mt-2 group-hover:scale-102 transition-transform duration-300 origin-left">{activeStaffCount}</p>
+                <span className="text-[9px] text-[#2C3627] font-mono mt-2 block border-t border-[#F5F3EF] pt-2">Fichados en recepción</span>
               </div>
             </div>
 
@@ -285,13 +318,13 @@ export default function AdminView({
               
               {/* CAM 1: Lobby */}
               <div className="border border-[#2D2D2D] bg-[#1A1A1A] p-2 rounded-xs relative group overflow-hidden">
-                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center">
+                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center cctv-scanlines">
                   {/* Fireplace CSS Loop simulation */}
                   <div className="absolute inset-0 bg-radial-gradient from-[#8C857B]/20 to-transparent animate-pulse" />
                   <div className="w-20 h-20 bg-gradient-to-t from-orange-600/30 to-transparent blur-xl rounded-full absolute bottom-4 animate-bounce" />
                   <div className="text-center space-y-2 z-10 text-white opacity-40">
                     <p className="font-mono text-[10px]">CÁMARA 01 · SALÓN CHIMENEA</p>
-                    <div className="w-1.5 h-1.5 bg-[#E5B181] rounded-full mx-auto animate-ping" />
+                    <div className="record-dot mx-auto" />
                   </div>
                 </div>
                 <div className="absolute top-4 left-4 font-mono text-[9px] text-[#E5B181] uppercase bg-black/70 px-1.5 py-0.5 rounded-xs tracking-wider">
@@ -304,13 +337,13 @@ export default function AdminView({
 
               {/* CAM 2: Path */}
               <div className="border border-[#2D2D2D] bg-[#1A1A1A] p-2 rounded-xs relative group overflow-hidden">
-                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center">
+                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center cctv-scanlines">
                   <div className="absolute inset-0 bg-radial-gradient from-teal-900/10 to-transparent" />
                   {/* Misty CSS wind sway effect */}
                   <div className="absolute inset-0 bg-[#2C3627]/5 blur-md animate-pulse" />
                   <div className="text-center space-y-2 z-10 text-white opacity-40">
                     <p className="font-mono text-[10px]">CÁMARA 02 · ENTRADA PINAR</p>
-                    <div className="w-1.5 h-1.5 bg-red-600 rounded-full mx-auto animate-ping" />
+                    <div className="record-dot mx-auto" />
                   </div>
                 </div>
                 <div className="absolute top-4 left-4 font-mono text-[9px] text-red-500 uppercase bg-black/70 px-1.5 py-0.5 rounded-xs tracking-wider">
@@ -323,13 +356,13 @@ export default function AdminView({
 
               {/* CAM 3: Thermal Pool */}
               <div className="border border-[#2D2D2D] bg-[#1A1A1A] p-2 rounded-xs relative group overflow-hidden">
-                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center">
+                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center cctv-scanlines">
                   <div className="absolute inset-0 bg-radial-gradient from-blue-900/10 to-transparent" />
                   {/* Ripples simulator */}
                   <div className="absolute w-24 h-24 border border-[#E5B181]/20 rounded-full animate-ping opacity-30" />
                   <div className="text-center space-y-2 z-10 text-white opacity-40">
                     <p className="font-mono text-[10px]">CÁMARA 03 · BAÑO TERMAL</p>
-                    <div className="w-1.5 h-1.5 bg-[#E5B181] rounded-full mx-auto animate-ping" />
+                    <div className="record-dot mx-auto" />
                   </div>
                 </div>
                 <div className="absolute top-4 left-4 font-mono text-[9px] text-[#E5B181] uppercase bg-black/70 px-1.5 py-0.5 rounded-xs tracking-wider">
@@ -342,10 +375,10 @@ export default function AdminView({
 
               {/* CAM 4: Pantry Kitchen */}
               <div className="border border-[#2D2D2D] bg-[#1A1A1A] p-2 rounded-xs relative group overflow-hidden">
-                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center">
+                <div className="aspect-video relative overflow-hidden bg-black flex items-center justify-center cctv-scanlines">
                   <div className="text-center space-y-2 z-10 text-white opacity-40">
                     <p className="font-mono text-[10px]">CÁMARA 04 · DESPENSA Y COCINA</p>
-                    <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mx-auto animate-ping" />
+                    <div className="record-dot mx-auto" />
                   </div>
                 </div>
                 <div className="absolute top-4 left-4 font-mono text-[9px] text-yellow-500 uppercase bg-black/70 px-1.5 py-0.5 rounded-xs tracking-wider">

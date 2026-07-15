@@ -283,17 +283,16 @@ export default function ReceptionistView({
             <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-100">Activo</span>
           </div>
         </div>
-
         {/* Sidebar Navigation */}
-        <div id="receptionist-sidebar-navigation" className="bg-[#FDFCFB] border border-[#E5E1D8] p-2 rounded-xl shadow-xs">
-          <nav className="flex flex-col gap-1 font-mono text-xs">
+        <div id="receptionist-sidebar-navigation" className="bg-[#FDFCFB] border border-[#E5E1D8] p-4.5 rounded-xl shadow-xs">
+          <nav className="flex flex-col gap-1.5 font-mono text-xs">
             <button 
               id="nav-tab-matrix"
               onClick={() => setActiveTab('matrix')}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-lg text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'matrix' 
-                  ? 'bg-[#2C3627] text-[#FDFCFB] shadow-sm font-semibold' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <LayoutGrid className="w-4 h-4 shrink-0" />
@@ -303,29 +302,29 @@ export default function ReceptionistView({
             <button 
               id="nav-tab-ledger"
               onClick={() => setActiveTab('ledger')}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-lg text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'ledger' 
-                  ? 'bg-[#2C3627] text-[#FDFCFB] shadow-sm font-semibold' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <ClipboardList className="w-4 h-4 shrink-0" />
               <span>Historial y Facturas</span>
             </button>
-
+ 
             <button 
               id="nav-tab-tasks"
               onClick={() => setActiveTab('tasks')}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-lg text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'tasks' 
-                  ? 'bg-[#2C3627] text-[#FDFCFB] shadow-sm font-semibold' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <Calendar className="w-4 h-4 shrink-0" />
               <span>Calendario de Tareas</span>
             </button>
-
+ 
             <button 
               id="nav-tab-walkin"
               onClick={() => {
@@ -333,23 +332,23 @@ export default function ReceptionistView({
                 setWalkinSuccess('');
                 setWalkinError('');
               }}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-lg text-left transition-all ${
+              className={`flex items-center gap-2.5 px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'walkin' 
-                  ? 'bg-[#2C3627] text-[#FDFCFB] shadow-sm font-semibold' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <UserPlus className="w-4 h-4 shrink-0" />
               <span>Reserva Presencial</span>
             </button>
-
+ 
             <button 
               id="nav-tab-chat"
               onClick={() => setActiveTab('chat')}
-              className={`flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all ${
+              className={`flex items-center justify-between px-3.5 py-3 border-l-2 text-left transition-all duration-300 cursor-pointer ${
                 activeTab === 'chat' 
-                  ? 'bg-[#2C3627] text-[#FDFCFB] shadow-sm font-semibold' 
-                  : 'text-[#8C857B] hover:bg-[#F5F3EF] hover:text-[#2D2D2D]'
+                  ? 'bg-[#2C3627]/5 text-[#2C3627] border-[#2C3627] font-semibold' 
+                  : 'text-[#8C857B] border-transparent hover:bg-[#F5F3EF]/60 hover:text-[#2D2D2D]'
               }`}
             >
               <span className="flex items-center gap-2.5">
