@@ -221,6 +221,82 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
 
       </div>
 
+      {/* Culinary Section: Gastronomía de Altura */}
+      <div className="max-w-7xl mx-auto px-4 space-y-10">
+        <div className="border-t border-[#E5E1D8] pt-14 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-1.5">
+            <h2 className="font-serif text-3.5xl text-[#2C3627] font-light">La Cocina Silente</h2>
+            <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-wider">Gastronomía Elemental de Fuego Lento · Altitud 1.280m</p>
+          </div>
+          <span className="font-mono text-[9px] text-[#E5B181] bg-[#2C3627] px-3.5 py-1.5 tracking-wider uppercase font-semibold rounded-full shadow-3xs">
+            Exclusivo Huéspedes
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-5 space-y-6">
+            <p className="font-serif italic text-2xl text-[#2D2D2D]/90 leading-relaxed font-light">
+              "El sabor de la montaña cocinado a la brasa de encina y el calor de las cenizas."
+            </p>
+            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
+              En Borda Silente, la comida no es solo alimento, es una conexión directa con el Pirineo aragonés. El restaurante del refugio está dedicado exclusivamente a nuestros huéspedes. Servimos recetas tradicionales de Huesca preparadas con ingredientes de temporada de productores del Valle de Ansó, acompañadas de pan artesanal fermentado a la antigua usanza y quesos de cueva locales.
+            </p>
+            <div className="border-t border-[#E5E1D8] pt-5 space-y-3 font-mono text-[10px] text-[#8C857B]">
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181]" />
+                <span>Desayuno del Refugio incluido en todas las reservas</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181]" />
+                <span>Platos elaborados con leña de encina y fuego de piedra</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181]" />
+                <span>Selección exclusiva de vinos Somontano de bodegas boutique</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Food item 1 */}
+            <div className="group overflow-hidden rounded-xl border border-[#E5E1D8] bg-[#FDFCFB] p-4.5 space-y-4 shadow-sm hover:border-[#2C3627] hover:shadow-lg transition-all duration-500">
+              <div className="aspect-[4/3] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner">
+                <img 
+                  src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80" 
+                  alt="Brasas y Carnes Pirenaicas"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="font-serif text-lg text-[#2C3627] font-medium leading-snug">Brasas del Pirineo</h4>
+                <p className="text-[11px] text-[#8C857B] font-light leading-relaxed">
+                  Carnes de ternera y cordero del Pirineo de Huesca preparadas a la brasa abierta de encina y servidas con sales de manantial locales.
+                </p>
+              </div>
+            </div>
+
+            {/* Food item 2 */}
+            <div className="group overflow-hidden rounded-xl border border-[#E5E1D8] bg-[#FDFCFB] p-4.5 space-y-4 shadow-sm hover:border-[#2C3627] hover:shadow-lg transition-all duration-500">
+              <div className="aspect-[4/3] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner">
+                <img 
+                  src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80" 
+                  alt="Panadería Tradicional"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="font-serif text-lg text-[#2C3627] font-medium leading-snug">Panadería y Masa Madre</h4>
+                <p className="text-[11px] text-[#8C857B] font-light leading-relaxed">
+                  Panes rústicos horneados cada mañana en el refugio con harinas molidas a piedra y fermentación natural extendida de 24 horas.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Core Split: Reservation Engine & Room Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 px-4 max-w-7xl mx-auto">
         
@@ -240,13 +316,16 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
             {rooms.map((room) => {
               const isSelected = selectedRoomId === room.id;
               return (
-                <div 
+                <motion.div 
+                  layout
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
                   key={room.id}
                   onClick={() => setSelectedRoomId(room.id)}
                   className={`bg-[#FDFCFB] border p-5 flex flex-col justify-between transition-all duration-500 rounded-xl cursor-pointer group shadow-sm relative overflow-hidden ${
                     isSelected 
-                      ? 'border-[#2C3627] ring-1 ring-[#2C3627] shadow-xl bg-[#FAF9F6] translate-y-[-2px]' 
-                      : 'border-[#E5E1D8] hover:border-[#2C3627]/60 hover:shadow-md hover:translate-y-[-1px]'
+                      ? 'border-[#2C3627] ring-1 ring-[#2C3627] shadow-xl bg-[#FAF9F6]' 
+                      : 'border-[#E5E1D8] hover:border-[#2C3627]/60 hover:shadow-md'
                   }`}
                 >
                   {/* Subtle design top border for selected state */}
@@ -330,7 +409,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
                     </button>
                   </div>
 
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -338,7 +417,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
 
         {/* RIGHT: Booking Engine & Folio Quote (5 cols on lg) */}
         <div className="lg:col-span-5 space-y-8">
-          <div className="bg-[#FAF9F6] border border-[#D1CDC3] p-7 space-y-6 rounded-xl shadow-lg relative overflow-hidden">
+          <div className="bg-[#FAF9F6] border-double-fine p-7 space-y-6 rounded-xl shadow-lg relative overflow-hidden">
             {/* Subtle paper grain texture simulation */}
             <div className="absolute inset-0 bg-repeat bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDAyIi8+Cjwvc3ZnPg==')] pointer-events-none" />
 
