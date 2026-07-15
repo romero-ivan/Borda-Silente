@@ -130,16 +130,49 @@ body {
   background-color: #121411 !important;
 }
 
-/* Text overrides */
-.text-\[\#2D2D2D\] {
+/* Text overrides and opacity variants */
+.text-\[\#2D2D2D\],
+[class*="text-[#2D2D2D]"] {
   color: #FAF8F5 !important;
 }
-.text-\[\#2C3627\] {
+[class*="text-[#2D2D2D]/90"] {
+  color: rgba(250, 248, 245, 0.9) !important;
+}
+[class*="text-[#2D2D2D]/80"] {
+  color: rgba(250, 248, 245, 0.8) !important;
+}
+[class*="text-[#2D2D2D]/70"] {
+  color: rgba(250, 248, 245, 0.7) !important;
+}
+[class*="text-[#2D2D2D]/50"] {
+  color: rgba(250, 248, 245, 0.5) !important;
+}
+
+.text-\[\#2C3627\],
+[class*="text-[#2C3627]"] {
   color: #E5B181 !important;
 }
-.text-\[\#8C857B\] {
+[class*="text-[#2C3627]/90"] {
+  color: rgba(229, 177, 129, 0.9) !important;
+}
+[class*="text-[#2C3627]/80"] {
+  color: rgba(229, 177, 129, 0.8) !important;
+}
+[class*="text-[#2C3627]/70"] {
+  color: rgba(229, 177, 129, 0.7) !important;
+}
+
+.text-\[\#8C857B\],
+[class*="text-[#8C857B]"] {
   color: #A39D90 !important;
 }
+[class*="text-[#8C857B]/90"] {
+  color: rgba(163, 157, 144, 0.9) !important;
+}
+[class*="text-[#8C857B]/80"] {
+  color: rgba(163, 157, 144, 0.8) !important;
+}
+
 .text-black {
   color: #FAF8F5 !important;
 }
