@@ -261,7 +261,7 @@ export default function ReceptionistView({
   });
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-16 select-none animate-fadeIn">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-16 animate-fadeIn">
       
       {/* LEFT COLUMN: NAVIGATION & widgets (3 cols on xl) */}
       <div className="xl:col-span-3 space-y-6">
@@ -1056,7 +1056,7 @@ export default function ReceptionistView({
         <div 
           id="occupied-room-modal-backdrop"
           onClick={() => setSelectedRoomDetails(null)}
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-end p-0 sm:p-4 select-none animate-fadeIn"
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-end p-0 sm:p-4 animate-fadeIn"
         >
           <div 
             onClick={(e) => e.stopPropagation()}

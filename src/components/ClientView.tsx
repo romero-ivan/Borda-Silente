@@ -120,7 +120,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
     .find(b => b.guestEmail.toLowerCase().trim() === lastBookedEmail.toLowerCase().trim());
 
   return (
-    <div className="space-y-20 pb-24 select-none">
+    <div className="space-y-20 pb-24">
       
       {/* Editorial Panoramic Hero Header */}
       <div className="relative py-24 sm:py-28 px-8 sm:px-12 overflow-hidden rounded-2xl border border-[#E5E1D8] bg-[#1C2319] shadow-2xl transition-all duration-700 hover:shadow-[#1C2319]/10">

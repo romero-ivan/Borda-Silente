@@ -13,7 +13,7 @@ interface RoleSwitcherProps {
 
 export default function RoleSwitcher({ currentRole, onChangeRole }: RoleSwitcherProps) {
   return (
-    <div className="bg-[#F8F6F2] border-b border-[#E5E1D8]/80 px-6 py-2.5 flex flex-col md:flex-row justify-between items-center gap-3.5 print:hidden select-none">
+    <div className="bg-[#F8F6F2] border-b border-[#E5E1D8]/80 px-6 py-2.5 flex flex-col md:flex-row justify-between items-center gap-3.5 print:hidden">
       <div className="flex items-center gap-2.5">
         <span className="inline-block w-2 h-2 rounded-full bg-[#E5B181] shadow-xs animate-ping" />
         <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#8C857B] font-medium">
