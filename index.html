@@ -7,6 +7,28 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Disable pinch-to-zoom on iOS devices (Safari/Chrome ignores user-scalable=no meta)
+      document.addEventListener('touchstart', function (event) {
+        if (event.touches.length > 1) {
+          event.preventDefault();
+        }
+      }, { passive: false });
+
+      // Disable double-tap-to-zoom on iOS devices
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          const target = event.target;
+          if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+            return;
+          }
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
