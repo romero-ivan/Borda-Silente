@@ -13,7 +13,8 @@ import AdminView from './components/AdminView.js';
 import InvoiceModal from './components/InvoiceModal.js';
 import ChatBox from './components/ChatBox.js';
 import { INITIAL_DATA } from './initialData.js';
-import { db } from './firebase.js';
+import { db, auth } from './firebase.js';
+import { signInAnonymously } from 'firebase/auth';
 import { 
   collection, 
   doc, 
@@ -39,12 +40,30 @@ export default function App() {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Active printable invoice
   const [activeInvoice, setActiveInvoice] = useState<{ booking: Booking; room: Room } | null>(null);
 
-  // Sync database state from Cloud Firestore in real time
+  // Authenticate anonymously on mount before starting synchronization
   useEffect(() => {
+    const performAuth = async () => {
+      try {
+        await signInAnonymously(auth);
+        setIsAuthenticated(true);
+      } catch (err) {
+        console.error('Anonymous auth failed:', err);
+        setError('Error al autenticar sesión de forma segura (asegúrese de activar el proveedor Anónimo en la consola de Firebase).');
+        setLoading(false);
+      }
+    };
+    performAuth();
+  }, []);
+
+  // Sync database state from Cloud Firestore in real time once authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     let unsubRooms: () => void;
     let unsubBookings: () => void;
     let unsubEmployees: () => void;
@@ -53,9 +72,7 @@ export default function App() {
 
     const setupSync = async () => {
       try {
-        setLoading(true);
-        
-        // 1. Check and seed Firestore if empty
+        // 1. Check and seed Firestore if empty (only checked/seeded once)
         const roomsRef = collection(db, 'rooms');
         const roomsSnap = await getDocs(roomsRef);
         if (roomsSnap.empty) {
@@ -77,11 +94,12 @@ export default function App() {
           }
         }
 
-        // 2. Set up realtime listeners
+        // 2. Set up realtime listeners (onSnapshot resolves immediately from IndexedDB cache if available)
         unsubRooms = onSnapshot(collection(db, 'rooms'), (snapshot) => {
           const list = snapshot.docs.map(doc => doc.data() as Room);
           list.sort((a, b) => a.id - b.id);
           setRooms(list);
+          setLoading(false); // Instantly clears loading layout when local cache yields data
         }, (err) => {
           console.error('Error syncing rooms:', err);
           setError('Fallo al sincronizar las habitaciones.');
@@ -122,7 +140,6 @@ export default function App() {
           setError('Fallo al sincronizar el chat de atención.');
         });
 
-        setLoading(false);
       } catch (err: any) {
         console.error('Failed to initialize Firestore connection:', err);
         setError('Error de conexión con la base de datos Firestore.');
@@ -139,7 +156,7 @@ export default function App() {
       if (unsubSubcontractors) unsubSubcontractors();
       if (unsubChats) unsubChats();
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // Action: Add booking
   // Action: Add booking (with atomic Firestore runTransaction)

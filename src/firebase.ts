@@ -4,7 +4,8 @@
  */
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAyWsxwImGp3eqaSngjpp6QF6uAxYqxLyw",
@@ -18,5 +19,12 @@ const firebaseConfig = {
 // Initialize Firebase App
 const app = initializeApp(firebaseConfig);
 
-// Initialize Cloud Firestore and export db
-export const db = getFirestore(app);
+// Initialize Cloud Firestore with persistent local cache (v10 SDK style)
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager()
+  })
+});
+
+// Initialize Auth
+export const auth = getAuth(app);
