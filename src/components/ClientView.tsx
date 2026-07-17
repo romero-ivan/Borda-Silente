@@ -293,10 +293,12 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
             <div className="group overflow-hidden rounded-xl border border-[#E5E1D8] bg-[#FDFCFB] p-4.5 space-y-4 shadow-sm hover:border-[#2C3627] hover:shadow-lg transition-all duration-500">
               <div className="aspect-[4/3] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner">
                 <img 
-                  src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80" 
+                  src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=450&q=70" 
                   alt="Brasas y Carnes Pirenaicas"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="space-y-1.5">
@@ -311,10 +313,12 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
             <div className="group overflow-hidden rounded-xl border border-[#E5E1D8] bg-[#FDFCFB] p-4.5 space-y-4 shadow-sm hover:border-[#2C3627] hover:shadow-lg transition-all duration-500">
               <div className="aspect-[4/3] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner">
                 <img 
-                  src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80" 
+                  src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=450&q=70" 
                   alt="Panadería Tradicional"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="space-y-1.5">
