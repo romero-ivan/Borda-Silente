@@ -51,9 +51,9 @@ export default function App() {
       try {
         await signInAnonymously(auth);
         setIsAuthenticated(true);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Anonymous auth failed:', err);
-        setError('Error al autenticar sesión de forma segura (asegúrese de activar el proveedor Anónimo en la consola de Firebase).');
+        setError(`Error al autenticar sesión: [${err.code || 'UNKNOWN'}] - ${err.message || err.toString()}`);
         setLoading(false);
       }
     };
