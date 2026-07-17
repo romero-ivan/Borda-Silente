@@ -13,25 +13,19 @@ import AdminView from './components/AdminView.js';
 import InvoiceModal from './components/InvoiceModal.js';
 import ChatBox from './components/ChatBox.js';
 import { INITIAL_DATA } from './initialData.js';
-
-const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-
-const getLocalDb = (): any => {
-  const local = localStorage.getItem('borda_silente_db');
-  if (local) {
-    try {
-      return JSON.parse(local);
-    } catch {
-      // ignore
-    }
-  }
-  localStorage.setItem('borda_silente_db', JSON.stringify(INITIAL_DATA));
-  return INITIAL_DATA;
-};
-
-const saveLocalDb = (data: any) => {
-  localStorage.setItem('borda_silente_db', JSON.stringify(data));
-};
+import { db } from './firebase.js';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDocs, 
+  onSnapshot, 
+  runTransaction, 
+  query, 
+  orderBy,
+  deleteField,
+  updateDoc
+} from 'firebase/firestore';
 
 export default function App() {
   const [currentRole, setCurrentRole] = useState<SenderRole>('consumer');
@@ -49,65 +43,106 @@ export default function App() {
   // Active printable invoice
   const [activeInvoice, setActiveInvoice] = useState<{ booking: Booking; room: Room } | null>(null);
 
-  // Poll database state periodically to keep client-receptionist-admin synced
-  const fetchHotelData = async (showLoading = false) => {
-    if (showLoading) setLoading(true);
-    
-    if (isProduction) {
-      const db = getLocalDb();
-      setRooms(db.rooms || []);
-      setBookings(db.bookings || []);
-      setEmployees(db.employees || []);
-      setSubcontractors(db.subcontractors || []);
-      setChats(db.chats || []);
-      setError('');
-      if (showLoading) setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/hotel/data');
-      if (res.ok) {
-        const data = await res.json();
-        setRooms(data.rooms || []);
-        setBookings(data.bookings || []);
-        setEmployees(data.employees || []);
-        setSubcontractors(data.subcontractors || []);
-        setChats(data.chats || []);
-        setError('');
-      } else {
-        const db = getLocalDb();
-        setRooms(db.rooms || []);
-        setBookings(db.bookings || []);
-        setEmployees(db.employees || []);
-        setSubcontractors(db.subcontractors || []);
-        setChats(db.chats || []);
-        setError('');
-      }
-    } catch (err) {
-      console.error('Failed to sync hotel database, falling back to local storage', err);
-      const db = getLocalDb();
-      setRooms(db.rooms || []);
-      setBookings(db.bookings || []);
-      setEmployees(db.employees || []);
-      setSubcontractors(db.subcontractors || []);
-      setChats(db.chats || []);
-      setError('');
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
-
+  // Sync database state from Cloud Firestore in real time
   useEffect(() => {
-    fetchHotelData(true);
-    // Poll every 3 seconds to represent a live, multi-user system
-    const interval = setInterval(() => {
-      fetchHotelData(false);
-    }, 3000);
-    return () => clearInterval(interval);
+    let unsubRooms: () => void;
+    let unsubBookings: () => void;
+    let unsubEmployees: () => void;
+    let unsubSubcontractors: () => void;
+    let unsubChats: () => void;
+
+    const setupSync = async () => {
+      try {
+        setLoading(true);
+        
+        // 1. Check and seed Firestore if empty
+        const roomsRef = collection(db, 'rooms');
+        const roomsSnap = await getDocs(roomsRef);
+        if (roomsSnap.empty) {
+          console.log('Seeding initial Borda Silente data to Firestore...');
+          for (const r of INITIAL_DATA.rooms) {
+            await setDoc(doc(db, 'rooms', r.id.toString()), r);
+          }
+          for (const b of INITIAL_DATA.bookings) {
+            await setDoc(doc(db, 'bookings', b.id), b);
+          }
+          for (const emp of INITIAL_DATA.employees) {
+            await setDoc(doc(db, 'employees', emp.id), emp);
+          }
+          for (const sub of INITIAL_DATA.subcontractors) {
+            await setDoc(doc(db, 'subcontractors', sub.id), sub);
+          }
+          for (const chat of INITIAL_DATA.chats) {
+            await setDoc(doc(db, 'chats', chat.id), chat);
+          }
+        }
+
+        // 2. Set up realtime listeners
+        unsubRooms = onSnapshot(collection(db, 'rooms'), (snapshot) => {
+          const list = snapshot.docs.map(doc => doc.data() as Room);
+          list.sort((a, b) => a.id - b.id);
+          setRooms(list);
+        }, (err) => {
+          console.error('Error syncing rooms:', err);
+          setError('Fallo al sincronizar las habitaciones.');
+        });
+
+        unsubBookings = onSnapshot(collection(db, 'bookings'), (snapshot) => {
+          const list = snapshot.docs.map(doc => doc.data() as Booking);
+          list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setBookings(list);
+        }, (err) => {
+          console.error('Error syncing bookings:', err);
+          setError('Fallo al sincronizar las reservas.');
+        });
+
+        unsubEmployees = onSnapshot(collection(db, 'employees'), (snapshot) => {
+          const list = snapshot.docs.map(doc => doc.data() as Employee);
+          list.sort((a, b) => a.id.localeCompare(b.id));
+          setEmployees(list);
+        }, (err) => {
+          console.error('Error syncing employees:', err);
+          setError('Fallo al sincronizar los empleados.');
+        });
+
+        unsubSubcontractors = onSnapshot(collection(db, 'subcontractors'), (snapshot) => {
+          const list = snapshot.docs.map(doc => doc.data() as Subcontractor);
+          list.sort((a, b) => a.id.localeCompare(b.id));
+          setSubcontractors(list);
+        }, (err) => {
+          console.error('Error syncing subcontractors:', err);
+          setError('Fallo al sincronizar las subcontratas.');
+        });
+
+        unsubChats = onSnapshot(query(collection(db, 'chats'), orderBy('timestamp', 'asc')), (snapshot) => {
+          const list = snapshot.docs.map(doc => doc.data() as ChatMessage);
+          setChats(list);
+        }, (err) => {
+          console.error('Error syncing chats:', err);
+          setError('Fallo al sincronizar el chat de atención.');
+        });
+
+        setLoading(false);
+      } catch (err: any) {
+        console.error('Failed to initialize Firestore connection:', err);
+        setError('Error de conexión con la base de datos Firestore.');
+        setLoading(false);
+      }
+    };
+
+    setupSync();
+
+    return () => {
+      if (unsubRooms) unsubRooms();
+      if (unsubBookings) unsubBookings();
+      if (unsubEmployees) unsubEmployees();
+      if (unsubSubcontractors) unsubSubcontractors();
+      if (unsubChats) unsubChats();
+    };
   }, []);
 
   // Action: Add booking
+  // Action: Add booking (with atomic Firestore runTransaction)
   const handleBook = async (bookingData: {
     guestName: string;
     guestEmail: string;
@@ -116,115 +151,58 @@ export default function App() {
     checkOut: string;
     platform: BookingPlatform;
   }) => {
-    if (isProduction) {
-      const db = getLocalDb();
-      const room = db.rooms.find((r: any) => r.id === bookingData.roomId);
-      if (!room) throw new Error('La habitación especificada no existe.');
-
-      const dateIn = new Date(bookingData.checkIn);
-      const dateOut = new Date(bookingData.checkOut);
-      const diffTime = Math.abs(dateOut.getTime() - dateIn.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-      const totalPrice = room.price * diffDays;
-
-      const bookingId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
-      const invoiceIndex = db.bookings.length + 213;
-      const invoiceNumber = `BS-2026-0${invoiceIndex}`;
-
-      const newBooking: Booking = {
-        id: bookingId,
-        guestName: bookingData.guestName,
-        guestEmail: bookingData.guestEmail,
-        roomId: room.id,
-        checkIn: bookingData.checkIn,
-        checkOut: bookingData.checkOut,
-        totalPrice,
-        platform: bookingData.platform || 'web',
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-        invoiceNumber
-      };
-
-      const todayStr = '2026-07-14';
-      if (bookingData.checkIn <= todayStr && bookingData.checkOut >= todayStr) {
-        room.status = 'occupied';
-      }
-
-      db.bookings.push(newBooking);
-      saveLocalDb(db);
-      await fetchHotelData(false);
-
-      setActiveInvoice({
-        booking: newBooking,
-        room
-      });
-      return;
-    }
-
     try {
-      const res = await fetch('/api/hotel/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData)
+      const result = await runTransaction(db, async (transaction) => {
+        const roomDocRef = doc(db, 'rooms', bookingData.roomId.toString());
+        const roomSnap = await transaction.get(roomDocRef);
+        if (!roomSnap.exists()) {
+          throw new Error('La habitación especificada no existe.');
+        }
+
+        const room = roomSnap.data() as Room;
+
+        const dateIn = new Date(bookingData.checkIn);
+        const dateOut = new Date(bookingData.checkOut);
+        const diffTime = Math.abs(dateOut.getTime() - dateIn.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+        const totalPrice = room.price * diffDays;
+
+        const bookingId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
+        const invoiceNumber = `BS-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+        const newBooking: Booking = {
+          id: bookingId,
+          guestName: bookingData.guestName,
+          guestEmail: bookingData.guestEmail,
+          roomId: room.id,
+          checkIn: bookingData.checkIn,
+          checkOut: bookingData.checkOut,
+          totalPrice,
+          platform: bookingData.platform || 'web',
+          status: 'confirmed',
+          createdAt: new Date().toISOString(),
+          invoiceNumber
+        };
+
+        const todayStr = '2026-07-14';
+        if (bookingData.checkIn <= todayStr && bookingData.checkOut >= todayStr) {
+          transaction.update(roomDocRef, { status: 'occupied' });
+          room.status = 'occupied';
+        }
+
+        const bookingDocRef = doc(db, 'bookings', bookingId);
+        transaction.set(bookingDocRef, newBooking);
+
+        return { booking: newBooking, room };
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Fallo al procesar la reserva.');
-      }
-      
-      const resData = await res.json();
-      await fetchHotelData(false);
-      
-      const matchedRoom = rooms.find(r => r.id === bookingData.roomId);
-      if (matchedRoom) {
-        setActiveInvoice({
-          booking: resData.booking,
-          room: matchedRoom
-        });
-      }
-    } catch (err: any) {
-      // Fallback
-      const db = getLocalDb();
-      const room = db.rooms.find((r: any) => r.id === bookingData.roomId);
-      if (!room) throw new Error('La habitación especificada no existe.');
-
-      const dateIn = new Date(bookingData.checkIn);
-      const dateOut = new Date(bookingData.checkOut);
-      const diffTime = Math.abs(dateOut.getTime() - dateIn.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-      const totalPrice = room.price * diffDays;
-
-      const bookingId = `B-${Math.floor(1000 + Math.random() * 9000)}`;
-      const invoiceIndex = db.bookings.length + 213;
-      const invoiceNumber = `BS-2026-0${invoiceIndex}`;
-
-      const newBooking: Booking = {
-        id: bookingId,
-        guestName: bookingData.guestName,
-        guestEmail: bookingData.guestEmail,
-        roomId: room.id,
-        checkIn: bookingData.checkIn,
-        checkOut: bookingData.checkOut,
-        totalPrice,
-        platform: bookingData.platform || 'web',
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-        invoiceNumber
-      };
-
-      const todayStr = '2026-07-14';
-      if (bookingData.checkIn <= todayStr && bookingData.checkOut >= todayStr) {
-        room.status = 'occupied';
-      }
-
-      db.bookings.push(newBooking);
-      saveLocalDb(db);
-      await fetchHotelData(false);
 
       setActiveInvoice({
-        booking: newBooking,
-        room
+        booking: result.booking,
+        room: result.room
       });
+    } catch (err: any) {
+      console.error('Failed to create booking in transaction:', err);
+      throw err;
     }
   };
 
@@ -237,273 +215,130 @@ export default function App() {
         ? 'Administrador General' 
         : 'Invitado Web';
 
-    if (isProduction) {
-      const db = getLocalDb();
-      const newMessage: ChatMessage = {
-        id: `MSG-${Math.floor(1000 + Math.random() * 9000)}`,
-        senderRole: currentRole,
-        senderName,
-        message: messageText,
-        timestamp: new Date().toISOString()
-      };
-      db.chats.push(newMessage);
-      saveLocalDb(db);
-      await fetchHotelData(false);
-      return;
-    }
-
     try {
-      const res = await fetch('/api/hotel/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          senderRole: currentRole,
-          senderName,
-          message: messageText
-        })
-      });
-      if (res.ok) {
-        await fetchHotelData(false);
-      } else {
-        throw new Error('API failed');
-      }
-    } catch (err) {
-      const db = getLocalDb();
+      const msgId = `MSG-${Math.floor(1000 + Math.random() * 9000)}`;
       const newMessage: ChatMessage = {
-        id: `MSG-${Math.floor(1000 + Math.random() * 9000)}`,
+        id: msgId,
         senderRole: currentRole,
         senderName,
         message: messageText,
         timestamp: new Date().toISOString()
       };
-      db.chats.push(newMessage);
-      saveLocalDb(db);
-      await fetchHotelData(false);
+      await setDoc(doc(db, 'chats', msgId), newMessage);
+    } catch (err) {
+      console.error('Failed to send chat message:', err);
     }
   };
 
   // Action: Housekeeping status
   const handleUpdateRoomStatus = async (roomId: number, status: RoomStatus) => {
-    if (isProduction) {
-      const db = getLocalDb();
-      const room = db.rooms.find((r: any) => r.id === roomId);
-      if (room) {
-        room.status = status;
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
-      return;
-    }
-
     try {
-      const res = await fetch(`/api/hotel/rooms/${roomId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (res.ok) {
-        await fetchHotelData(false);
-      } else {
-        throw new Error('API failed');
-      }
+      const roomDocRef = doc(db, 'rooms', roomId.toString());
+      await updateDoc(roomDocRef, { status });
     } catch (err) {
-      const db = getLocalDb();
-      const room = db.rooms.find((r: any) => r.id === roomId);
-      if (room) {
-        room.status = status;
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
+      console.error('Failed to update room status:', err);
     }
   };
 
   // Action: Clock-in employee
   const handleClockEmployee = async (employeeId: string, action: 'in' | 'out') => {
-    if (isProduction) {
-      const db = getLocalDb();
-      const emp = db.employees.find((e: any) => e.id === employeeId);
-      if (emp) {
-        if (action === 'in') {
-          emp.status = 'present';
-          const now = new Date();
-          emp.todayClockIn = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        } else {
-          emp.status = 'absent';
-          delete emp.todayClockIn;
-        }
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
-      return;
-    }
-
     try {
-      const res = await fetch('/api/employees/clock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employeeId, action })
-      });
-      if (res.ok) {
-        await fetchHotelData(false);
+      const empDocRef = doc(db, 'employees', employeeId);
+      if (action === 'in') {
+        const now = new Date();
+        const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        await updateDoc(empDocRef, {
+          status: 'present',
+          todayClockIn: hhmm,
+          todayClockOut: deleteField()
+        });
       } else {
-        throw new Error('API failed');
+        const now = new Date();
+        const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        await updateDoc(empDocRef, {
+          status: 'absent',
+          todayClockOut: hhmm
+        });
       }
     } catch (err) {
-      const db = getLocalDb();
-      const emp = db.employees.find((e: any) => e.id === employeeId);
-      if (emp) {
-        if (action === 'in') {
-          emp.status = 'present';
-          const now = new Date();
-          emp.todayClockIn = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        } else {
-          emp.status = 'absent';
-          delete emp.todayClockIn;
-        }
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
+      console.error('Failed to clock employee:', err);
     }
   };
 
   // Action: Log leave (vacations/sick)
   const handleLogLeave = async (employeeId: string, leaveType: 'vacation' | 'sick', days: number) => {
-    if (isProduction) {
-      const db = getLocalDb();
-      const emp = db.employees.find((e: any) => e.id === employeeId);
-      if (emp) {
-        if (leaveType === 'vacation') {
-          emp.status = 'vacation';
-          emp.vacationsTaken = (emp.vacationsTaken || 0) + days;
-        } else {
-          emp.status = 'sick';
-          emp.sickLeaves = (emp.sickLeaves || 0) + 1;
-        }
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
-      return;
-    }
-
     try {
-      const res = await fetch('/api/employees/leave', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employeeId, leaveType, days })
-      });
-      if (res.ok) {
-        await fetchHotelData(false);
-      } else {
-        throw new Error('API failed');
-      }
-    } catch (err) {
-      const db = getLocalDb();
-      const emp = db.employees.find((e: any) => e.id === employeeId);
-      if (emp) {
+      const empDocRef = doc(db, 'employees', employeeId);
+      await runTransaction(db, async (transaction) => {
+        const empSnap = await transaction.get(empDocRef);
+        if (!empSnap.exists()) return;
+        const emp = empSnap.data() as Employee;
         if (leaveType === 'vacation') {
-          emp.status = 'vacation';
-          emp.vacationsTaken = (emp.vacationsTaken || 0) + days;
+          transaction.update(empDocRef, {
+            status: 'vacation',
+            vacationsTaken: (emp.vacationsTaken || 0) + days
+          });
         } else {
-          emp.status = 'sick';
-          emp.sickLeaves = (emp.sickLeaves || 0) + 1;
+          transaction.update(empDocRef, {
+            status: 'sick',
+            sickLeaves: (emp.sickLeaves || 0) + 1
+          });
         }
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
+      });
+    } catch (err) {
+      console.error('Failed to log leave:', err);
     }
   };
 
   // Action: Add maintenance ticket
   const handleAddSubcontractorTicket = async (subcontractorId: string, title: string) => {
-    if (isProduction) {
-      const db = getLocalDb();
-      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
-      if (sub) {
-        const ticketId = `TKT-${Math.floor(100 + Math.random() * 900)}`;
-        sub.activeTickets.push({
-          id: ticketId,
-          title,
-          status: 'open',
-          date: new Date().toISOString().split('T')[0]
-        });
-        sub.status = 'pending-review';
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
-      return;
-    }
-
     try {
-      const res = await fetch('/api/hotel/subcontractors/ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subcontractorId, title })
-      });
-      if (res.ok) {
-        await fetchHotelData(false);
-      } else {
-        throw new Error('API failed');
-      }
-    } catch (err) {
-      const db = getLocalDb();
-      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
-      if (sub) {
+      const subDocRef = doc(db, 'subcontractors', subcontractorId);
+      await runTransaction(db, async (transaction) => {
+        const subSnap = await transaction.get(subDocRef);
+        if (!subSnap.exists()) return;
+        const sub = subSnap.data() as Subcontractor;
         const ticketId = `TKT-${Math.floor(100 + Math.random() * 900)}`;
-        sub.activeTickets.push({
+        const newTicket = {
           id: ticketId,
           title,
-          status: 'open',
+          status: 'open' as const,
           date: new Date().toISOString().split('T')[0]
+        };
+        const updatedTickets = [...(sub.activeTickets || []), newTicket];
+        transaction.update(subDocRef, {
+          activeTickets: updatedTickets,
+          status: 'pending-review'
         });
-        sub.status = 'pending-review';
-        saveLocalDb(db);
-        await fetchHotelData(false);
-      }
+      });
+    } catch (err) {
+      console.error('Failed to add subcontractor ticket:', err);
     }
   };
 
   // Action: Resolve maintenance ticket
   const handleResolveSubcontractorTicket = async (subcontractorId: string, ticketId: string) => {
-    if (isProduction) {
-      const db = getLocalDb();
-      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
-      if (sub) {
-        const ticket = sub.activeTickets.find((t: any) => t.id === ticketId);
-        if (ticket) {
-          ticket.status = 'resolved';
-          const hasOpen = sub.activeTickets.some((t: any) => t.status === 'open');
-          sub.status = hasOpen ? 'pending-review' : 'ok';
-          saveLocalDb(db);
-          await fetchHotelData(false);
-        }
-      }
-      return;
-    }
-
     try {
-      const res = await fetch('/api/hotel/subcontractors/resolve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subcontractorId, ticketId })
+      const subDocRef = doc(db, 'subcontractors', subcontractorId);
+      await runTransaction(db, async (transaction) => {
+        const subSnap = await transaction.get(subDocRef);
+        if (!subSnap.exists()) return;
+        const sub = subSnap.data() as Subcontractor;
+        const updatedTickets = (sub.activeTickets || []).map(t => {
+          if (t.id === ticketId) {
+            return { ...t, status: 'resolved' as const };
+          }
+          return t;
+        });
+        const hasOpen = updatedTickets.some(t => t.status === 'open');
+        const nextStatus = hasOpen ? 'pending-review' : 'ok';
+        transaction.update(subDocRef, {
+          activeTickets: updatedTickets,
+          status: nextStatus
+        });
       });
-      if (res.ok) {
-        await fetchHotelData(false);
-      } else {
-        throw new Error('API failed');
-      }
     } catch (err) {
-      const db = getLocalDb();
-      const sub = db.subcontractors.find((s: any) => s.id === subcontractorId);
-      if (sub) {
-        const ticket = sub.activeTickets.find((t: any) => t.id === ticketId);
-        if (ticket) {
-          ticket.status = 'resolved';
-          const hasOpen = sub.activeTickets.some((t: any) => t.status === 'open');
-          sub.status = hasOpen ? 'pending-review' : 'ok';
-          saveLocalDb(db);
-          await fetchHotelData(false);
-        }
-      }
+      console.error('Failed to resolve subcontractor ticket:', err);
     }
   };
 
