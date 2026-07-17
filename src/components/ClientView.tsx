@@ -28,11 +28,20 @@ interface ClientViewProps {
     platform: BookingPlatform;
   }) => Promise<void>;
   onOpenInvoice: (booking: Booking, room: Room) => void;
+  loading?: boolean;
 }
 
-export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: ClientViewProps) {
+export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loading }: ClientViewProps) {
   // Booking Form State
-  const [selectedRoomId, setSelectedRoomId] = useState<number>(rooms[0]?.id || 101);
+  const [selectedRoomId, setSelectedRoomId] = useState<number>(101);
+
+  // Sync selectedRoomId when rooms list actually loads
+  useEffect(() => {
+    if (rooms.length > 0 && !rooms.some(r => r.id === selectedRoomId)) {
+      setSelectedRoomId(rooms[0].id);
+    }
+  }, [rooms, selectedRoomId]);
+
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [checkIn, setCheckIn] = useState('2026-07-14');
@@ -332,105 +341,127 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            {rooms.map((room) => {
-              const isSelected = selectedRoomId === room.id;
-              return (
-                <motion.div 
-                  layout
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-                  key={room.id}
-                  onClick={() => setSelectedRoomId(room.id)}
-                  className={`bg-[#FDFCFB] border p-5 flex flex-col justify-between transition-all duration-500 rounded-xl cursor-pointer group shadow-sm relative overflow-hidden ${
-                    isSelected 
-                      ? 'border-[#2C3627] ring-1 ring-[#2C3627] shadow-xl bg-[#FAF9F6]' 
-                      : 'border-[#E5E1D8] hover:border-[#2C3627]/60 hover:shadow-md'
-                  }`}
-                >
-                  {/* Subtle design top border for selected state */}
-                  {isSelected && (
-                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#2C3627]" />
-                  )}
-
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-[#FDFCFB] border border-[#E5E1D8] p-5 flex flex-col justify-between rounded-xl animate-pulse space-y-5">
                   <div>
-                    {/* Image with zoom hover effect */}
-                    <div className="relative aspect-[16/10] overflow-hidden mb-5 bg-[#F5F3EF] rounded-lg shadow-inner">
-                      <img 
-                        src={room.image} 
-                        alt={room.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
-                      />
-                      
-                      {/* Interactive pill for Room status */}
-                      <div className="absolute top-3 right-3 z-10 flex gap-1.5">
-                        <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1.5 ${
-                          room.status === 'available' 
-                            ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
-                            : 'bg-white/90 text-[#8C857B] border-[#D1CDC3]/20'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'available' ? 'bg-[#2C3627]' : 'bg-[#8C857B] animate-pulse'}`} />
-                          {room.status === 'available' ? 'Disponible' : 'Ocupada'}
-                        </span>
-                      </div>
-
-                      {/* Cabin/Suite marker tag */}
-                      <div className="absolute bottom-3 left-3">
-                        <span className="px-2.5 py-1 text-[7.5px] font-mono uppercase tracking-widest text-white bg-[#2C3627]/90 rounded-sm backdrop-blur-xs font-medium">
-                          {room.type === 'cabin' ? '★ Cabaña de Madera' : room.type === 'suite' ? '★ Suite Refugio' : '★ Habitación Principal'}
-                        </span>
-                      </div>
-                    </div>
-
+                    <div className="aspect-[16/10] bg-[#FAF9F6]/80 rounded-lg mb-5 shadow-inner" />
                     <div className="space-y-3.5">
                       <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-serif text-xl text-[#2C3627] font-medium leading-snug group-hover:text-black transition-colors">{room.name}</h3>
-                        <span className="font-mono text-[9px] text-[#8C857B] bg-[#F5F3EF] px-2 py-0.5 rounded-sm shrink-0 font-medium">Nº {room.number}</span>
+                        <div className="h-6 bg-[#E5E1D8]/60 rounded-xs w-2/3" />
+                        <div className="h-4 bg-[#E5E1D8]/40 rounded-xs w-10 shrink-0" />
                       </div>
-
-                      <div className="flex items-baseline gap-1 font-mono text-xs text-[#2C3627] font-semibold bg-[#2C3627]/5 px-2.5 py-1 rounded-sm w-max">
-                        <span className="text-base font-serif font-medium">{room.price}€</span>
-                        <span className="text-[10px] text-[#8C857B] font-light">/ noche</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[10px] text-[#8C857B] font-mono border-t border-[#F5F3EF] pt-2.5">
-                        <Users className="w-4 h-4 text-[#E5B181]" />
-                        <span>Capacidad: {room.capacity} personas</span>
-                      </div>
-
-                      {/* Features list */}
-                      <ul className="pt-2.5 text-[11px] text-[#8C857B] space-y-2 border-t border-[#F5F3EF] mt-2.5">
-                        {room.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181] shrink-0" />
-                            <span className="font-sans font-light text-[#2D2D2D] truncate">{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="h-8 bg-[#E5E1D8]/45 rounded-xs w-20" />
+                      <div className="h-4 bg-[#E5E1D8]/30 rounded-xs w-full mt-2.5" />
                     </div>
                   </div>
-
-                  {/* Selection footer banner */}
                   <div className="pt-4 border-t border-[#E5E1D8] mt-5 flex justify-between items-center">
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Pirineo de Huesca</span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedRoomId(room.id);
-                      }}
-                      className={`px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition-all rounded-sm cursor-pointer ${
-                        isSelected 
-                          ? 'bg-[#2C3627] text-[#FDFCFB] shadow-md font-semibold' 
-                          : 'bg-[#F5F3EF] text-[#8C857B] hover:bg-[#D1CDC3] hover:text-[#2D2D2D]'
-                      }`}
-                    >
-                      {isSelected ? '✓ Seleccionada' : 'Seleccionar'}
-                    </button>
+                    <div className="h-3 bg-[#E5E1D8]/30 rounded-xs w-16" />
+                    <div className="h-7 bg-[#E5E1D8]/50 rounded-xs w-24" />
                   </div>
+                </div>
+              ))
+            ) : (
+              rooms.map((room) => {
+                const isSelected = selectedRoomId === room.id;
+                return (
+                  <motion.div 
+                    layout
+                    whileHover={{ y: -3 }}
+                    transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+                    key={room.id}
+                    onClick={() => setSelectedRoomId(room.id)}
+                    className={`bg-[#FDFCFB] border p-5 flex flex-col justify-between transition-all duration-500 rounded-xl cursor-pointer group shadow-sm relative overflow-hidden ${
+                      isSelected 
+                        ? 'border-[#2C3627] ring-1 ring-[#2C3627] shadow-xl bg-[#FAF9F6]' 
+                        : 'border-[#E5E1D8] hover:border-[#2C3627]/60 hover:shadow-md'
+                    }`}
+                  >
+                    {/* Subtle design top border for selected state */}
+                    {isSelected && (
+                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#2C3627]" />
+                    )}
 
-                </motion.div>
-              );
-            })}
+                    <div>
+                      {/* Image with zoom hover effect */}
+                      <div className="relative aspect-[16/10] overflow-hidden mb-5 bg-[#F5F3EF] rounded-lg shadow-inner">
+                        <img 
+                          src={room.image} 
+                          alt={room.name}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+                        />
+                        
+                        {/* Interactive pill for Room status */}
+                        <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+                          <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1.5 ${
+                            room.status === 'available' 
+                              ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
+                              : 'bg-white/90 text-[#8C857B] border-[#D1CDC3]/20'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'available' ? 'bg-[#2C3627]' : 'bg-[#8C857B] animate-pulse'}`} />
+                            {room.status === 'available' ? 'Disponible' : 'Ocupada'}
+                          </span>
+                        </div>
+
+                        {/* Cabin/Suite marker tag */}
+                        <div className="absolute bottom-3 left-3">
+                          <span className="px-2.5 py-1 text-[7.5px] font-mono uppercase tracking-widest text-white bg-[#2C3627]/90 rounded-sm backdrop-blur-xs font-medium">
+                            {room.type === 'cabin' ? '★ Cabaña de Madera' : room.type === 'suite' ? '★ Suite Refugio' : '★ Habitación Principal'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3.5">
+                        <div className="flex justify-between items-start gap-2">
+                          <h3 className="font-serif text-xl text-[#2C3627] font-medium leading-snug group-hover:text-black transition-colors">{room.name}</h3>
+                          <span className="font-mono text-[9px] text-[#8C857B] bg-[#F5F3EF] px-2 py-0.5 rounded-sm shrink-0 font-medium">Nº {room.number}</span>
+                        </div>
+
+                        <div className="flex items-baseline gap-1 font-mono text-xs text-[#2C3627] font-semibold bg-[#2C3627]/5 px-2.5 py-1 rounded-sm w-max">
+                          <span className="text-base font-serif font-medium">{room.price}€</span>
+                          <span className="text-[10px] text-[#8C857B] font-light">/ noche</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-[10px] text-[#8C857B] font-mono border-t border-[#F5F3EF] pt-2.5">
+                          <Users className="w-4 h-4 text-[#E5B181]" />
+                          <span>Capacidad: {room.capacity} personas</span>
+                        </div>
+
+                        {/* Features list */}
+                        <ul className="pt-2.5 text-[11px] text-[#8C857B] space-y-2 border-t border-[#F5F3EF] mt-2.5">
+                          {room.features.map((feat, idx) => (
+                            <li key={idx} className="flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181] shrink-0" />
+                              <span className="font-sans font-light text-[#2D2D2D] truncate">{feat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Selection footer banner */}
+                    <div className="pt-4 border-t border-[#E5E1D8] mt-5 flex justify-between items-center">
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Pirineo de Huesca</span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRoomId(room.id);
+                        }}
+                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition-all rounded-sm cursor-pointer ${
+                          isSelected 
+                            ? 'bg-[#2C3627] text-[#FDFCFB] shadow-md font-semibold' 
+                            : 'bg-[#F5F3EF] text-[#8C857B] hover:bg-[#D1CDC3] hover:text-[#2D2D2D]'
+                        }`}
+                      >
+                        {isSelected ? '✓ Seleccionada' : 'Seleccionar'}
+                      </button>
+                    </div>
+
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -451,15 +482,26 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
             <form onSubmit={handleSubmitBooking} className="space-y-5 relative z-10">
               
               {/* Confirmed Selection Box */}
-              <div className="p-4 bg-[#FDFCFB] border border-[#D1CDC3] rounded-lg text-xs space-y-1.5 shadow-sm relative overflow-hidden group">
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#2C3627]" />
-                <span className="font-mono text-[8px] uppercase tracking-widest text-[#8C857B] block font-semibold">ESTANCIA SELECCIONADA</span>
-                <p className="font-serif font-medium text-[#2C3627] text-lg">{selectedRoom?.name}</p>
-                <div className="flex justify-between items-baseline pt-1">
-                  <p className="font-mono text-[10px] text-[#8C857B]">Refugio de Alta Montaña</p>
-                  <p className="font-mono text-xs font-semibold text-[#2C3627]">{selectedRoom?.price}€ <span className="font-light text-[9px] text-[#8C857B]">/ noche</span></p>
+              {loading ? (
+                <div className="p-4 bg-[#FDFCFB] border border-[#D1CDC3] rounded-lg text-xs space-y-2 shadow-sm animate-pulse">
+                  <div className="h-3 bg-[#E5E1D8]/60 rounded-xs w-1/3" />
+                  <div className="h-5 bg-[#E5E1D8]/45 rounded-xs w-2/3" />
+                  <div className="flex justify-between pt-1">
+                    <div className="h-3 bg-[#E5E1D8]/35 rounded-xs w-1/4" />
+                    <div className="h-3.5 bg-[#E5E1D8]/50 rounded-xs w-16" />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 bg-[#FDFCFB] border border-[#D1CDC3] rounded-lg text-xs space-y-1.5 shadow-sm relative overflow-hidden group">
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#2C3627]" />
+                  <span className="font-mono text-[8px] uppercase tracking-widest text-[#8C857B] block font-semibold">ESTANCIA SELECCIONADA</span>
+                  <p className="font-serif font-medium text-[#2C3627] text-lg">{selectedRoom?.name}</p>
+                  <div className="flex justify-between items-baseline pt-1">
+                    <p className="font-mono text-[10px] text-[#8C857B]">Refugio de Alta Montaña</p>
+                    <p className="font-mono text-xs font-semibold text-[#2C3627]">{selectedRoom?.price}€ <span className="font-light text-[9px] text-[#8C857B]">/ noche</span></p>
+                  </div>
+                </div>
+              )}
 
               {/* Date Inputs */}
               <div className="grid grid-cols-2 gap-4">
@@ -513,30 +555,55 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice }: C
               </div>
 
               {/* Invoice breakdown styled like traditional receipt folio */}
-              <div className="space-y-2 text-xs font-mono text-[#8C857B] bg-[#FDFCFB] border border-[#E5E1D8] p-4.5 rounded-lg shadow-sm relative overflow-hidden">
-                <div className="flex justify-between relative z-10">
-                  <span>{selectedRoom?.name} ({nights} n.)</span>
-                  <span className="text-[#2D2D2D]">{roomPriceTotal.toFixed(2)}€</span>
+              {loading ? (
+                <div className="space-y-3.5 text-xs font-mono text-[#8C857B] bg-[#FDFCFB] border border-[#E5E1D8] p-4.5 rounded-lg shadow-sm animate-pulse">
+                  <div className="flex justify-between">
+                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-1/2" />
+                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-12" />
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-1/3" />
+                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-10" />
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-1/3" />
+                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-10" />
+                  </div>
+                  <div className="flex justify-between pb-2">
+                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-2/5" />
+                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-10" />
+                  </div>
+                  <div className="flex justify-between border-t border-[#E5E1D8]/60 pt-3 mt-2.5">
+                    <div className="h-4 bg-[#E5E1D8]/55 rounded-xs w-1/3" />
+                    <div className="h-5 bg-[#E5E1D8]/60 rounded-xs w-16" />
+                  </div>
                 </div>
-                <div className="flex justify-between relative z-10">
-                  <span>Tasa Ecológica Pirenaica</span>
-                  <span className="text-[#2D2D2D]">{ecoTax.toFixed(2)}€</span>
+              ) : (
+                <div className="space-y-2 text-xs font-mono text-[#8C857B] bg-[#FDFCFB] border border-[#E5E1D8] p-4.5 rounded-lg shadow-sm relative overflow-hidden">
+                  <div className="flex justify-between relative z-10">
+                    <span>{selectedRoom?.name} ({nights} n.)</span>
+                    <span className="text-[#2D2D2D]">{roomPriceTotal.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between relative z-10">
+                    <span>Tasa Ecológica Pirenaica</span>
+                    <span className="text-[#2D2D2D]">{ecoTax.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between relative z-10">
+                    <span>Acondicionamiento y Lino</span>
+                    <span className="text-[#2D2D2D]">{cleaningFee.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-[#FAF9F6]/10 relative z-10">
+                    <span>IVA Turístico Aplicado (10%)</span>
+                    <span className="text-[#2D2D2D]">{iva.toFixed(2)}€</span>
+                  </div>
+                  
+                  {/* Total sum with high prominence */}
+                  <div className="flex justify-between font-bold text-sm text-[#2D2D2D] border-t border-[#E5E1D8]/60 pt-3 mt-2.5 relative z-10">
+                    <span className="font-sans font-medium text-xs text-[#2C3627]">Total de la Estancia:</span>
+                    <span className="text-lg text-[#2C3627] font-mono font-bold">{total.toFixed(2)}€</span>
+                  </div>
                 </div>
-                <div className="flex justify-between relative z-10">
-                  <span>Acondicionamiento y Lino</span>
-                  <span className="text-[#2D2D2D]">{cleaningFee.toFixed(2)}€</span>
-                </div>
-                <div className="flex justify-between pb-2 border-b border-[#FAF9F6]/10 relative z-10">
-                  <span>IVA Turístico Aplicado (10%)</span>
-                  <span className="text-[#2D2D2D]">{iva.toFixed(2)}€</span>
-                </div>
-                
-                {/* Total sum with high prominence */}
-                <div className="flex justify-between font-bold text-sm text-[#2D2D2D] border-t border-[#E5E1D8]/60 pt-3 mt-2.5 relative z-10">
-                  <span className="font-sans font-medium text-xs text-[#2C3627]">Total de la Estancia:</span>
-                  <span className="text-lg text-[#2C3627] font-mono font-bold">{total.toFixed(2)}€</span>
-                </div>
-              </div>
+              )}
 
               {/* Status responses with transitions */}
               <AnimatePresence mode="wait">

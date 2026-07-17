@@ -500,122 +500,141 @@ export default function ReceptionistView({
 
             {/* Matrix 6 Rooms Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rooms.map((room) => {
-                const activeBooking = getActiveBookingForRoom(room.id);
-                const isOccupied = room.status === 'occupied';
-                const isCleaningOrMaint = room.status === 'cleaning' || room.status === 'maintenance';
-                const statusDetails = getRoomStatusDetails(room.status);
-
-                return (
-                  <div 
-                    key={room.id}
-                    id={`room-card-${room.id}`}
-                    onClick={() => {
-                      if (isOccupied && activeBooking) {
-                        setSelectedRoomDetails({ room, booking: activeBooking });
-                      } else if (room.status === 'available') {
-                        setWalkinRoomId(room.id);
-                        setActiveTab('walkin');
-                        setWalkinSuccess('');
-                        setWalkinError('');
-                      }
-                    }}
-                    className={`relative bg-[#FDFCFB] border-t-4 ${statusDetails.borderClass} border-x border-b border-[#E5E1D8] p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-5 group cursor-pointer ${
-                      isCleaningOrMaint ? 'opacity-85 hover:opacity-100' : ''
-                    }`}
-                  >
-                    
-                    {/* Upper Room Stats Bar */}
+              {loading ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <div key={idx} className="relative bg-[#FDFCFB] border border-[#E5E1D8] p-5 rounded-xl shadow-xs animate-pulse flex flex-col justify-between gap-5">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="font-mono text-[10.5px] bg-[#F5F3EF] px-2.5 py-0.5 text-[#2D2D2D] font-bold rounded-sm border border-[#E5E1D8]">
-                          Estancia {room.number}
-                        </span>
-
-                        {/* Custom Dropdown to change room status directly (No slop buttons!) */}
-                        <div 
-                          onClick={(e) => e.stopPropagation()} 
-                          className="relative"
-                        >
-                          <select
-                            id={`status-select-${room.id}`}
-                            value={room.status}
-                            onChange={(e) => onUpdateRoomStatus(room.id, e.target.value as RoomStatus)}
-                            className="font-mono text-[10px] bg-white border border-[#D1CDC3] text-[#2D2D2D] rounded-md py-1 px-2.5 pr-6 cursor-pointer focus:outline-hidden focus:border-[#2C3627] font-semibold appearance-none leading-none shadow-3xs"
-                            style={{
-                              backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%238C857B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-chevron-down'><polyline points='6 9 12 15 18 9'/></svg>")`,
-                              backgroundRepeat: 'no-repeat',
-                              backgroundPosition: 'right 4px center',
-                              backgroundSize: '12px'
-                            }}
-                          >
-                            <option value="available">🟢 Libre</option>
-                            <option value="occupied">🔴 Ocupada</option>
-                            <option value="cleaning">🟠 Limpieza</option>
-                            <option value="maintenance">🟣 Avería</option>
-                          </select>
-                        </div>
+                        <div className="h-5 bg-[#E5E1D8]/60 rounded-xs w-24" />
+                        <div className="h-5 bg-[#E5E1D8]/45 rounded-xs w-16" />
                       </div>
-
-                      {/* Room Visual Info */}
-                      <div>
-                        <h4 className="font-serif text-lg font-medium text-[#2C3627] group-hover:text-black transition-colors">
-                          {room.name}
-                        </h4>
-                        
-                        {/* Dynamic view based on occupancy status */}
-                        <div className="mt-2 pt-1">
-                          {isOccupied && activeBooking ? (
-                            <div className="space-y-1.5 bg-rose-50/40 border border-rose-100/60 p-3 rounded-lg text-xs font-sans">
-                              <div className="flex items-center gap-1.5 text-rose-900 font-medium">
-                                <User className="w-3.5 h-3.5 text-rose-500" />
-                                <span className="truncate">{activeBooking.guestName}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 text-[#8C857B] font-mono text-[10px]">
-                                <Calendar className="w-3.5 h-3.5 text-rose-400" />
-                                <span>Salida: {activeBooking.checkOut}</span>
-                              </div>
-                            </div>
-                          ) : isCleaningOrMaint ? (
-                            <div className="space-y-1.5 bg-[#FAF9F6] border border-[#E5E1D8]/60 p-3 rounded-lg text-xs font-mono text-[#8C857B]">
-                              <span className="flex items-center gap-1.5">
-                                {room.status === 'cleaning' ? (
-                                  <>
-                                    <Coffee className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                                    <span>Asignada a: Elena G.</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Hammer className="w-3.5 h-3.5 text-purple-500" />
-                                    <span>Técnico: Pedro M.</span>
-                                  </>
-                                )}
-                              </span>
-                              <span className="text-[9.5px] italic leading-tight block">
-                                {room.status === 'cleaning' ? 'Higienización de lino y tina' : 'Incidencia en caldera pendiente'}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="flex justify-between items-baseline font-mono text-xs text-[#8C857B]">
-                              <span>Capacidad: {room.capacity} Pax</span>
-                              <span className="font-serif font-medium text-[#2C3627] text-sm bg-[#2C3627]/5 px-2 py-0.5 rounded-sm">{room.price}€ / noche</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <div className="h-6 bg-[#E5E1D8]/50 rounded-xs w-2/3" />
+                      <div className="h-4 bg-[#E5E1D8]/30 rounded-xs w-1/2" />
                     </div>
-
-                    {/* Lower helper instructions banner */}
-                    <div className="pt-3 border-t border-[#F5F3EF] flex justify-between items-center text-[10px] font-mono uppercase tracking-wider text-[#8C857B]">
-                      <span>{room.type === 'cabin' ? '★ Cabaña' : room.type === 'suite' ? '★ Suite' : '★ Estándar'}</span>
-                      <span className="text-[#2C3627] group-hover:underline font-semibold">
-                        {isOccupied ? 'Ver detalles →' : room.status === 'available' ? 'Reservar →' : 'Gestionar'}
-                      </span>
+                    <div className="border-t border-[#E5E1D8] pt-4 flex justify-between items-center mt-auto">
+                      <div className="h-4 bg-[#E5E1D8]/35 rounded-xs w-20" />
+                      <div className="h-7 bg-[#E5E1D8]/50 rounded-xs w-28" />
                     </div>
-
                   </div>
-                );
-              })}
+                ))
+              ) : (
+                rooms.map((room) => {
+                  const activeBooking = getActiveBookingForRoom(room.id);
+                  const isOccupied = room.status === 'occupied';
+                  const isCleaningOrMaint = room.status === 'cleaning' || room.status === 'maintenance';
+                  const statusDetails = getRoomStatusDetails(room.status);
+
+                  return (
+                    <div 
+                      key={room.id}
+                      id={`room-card-${room.id}`}
+                      onClick={() => {
+                        if (isOccupied && activeBooking) {
+                          setSelectedRoomDetails({ room, booking: activeBooking });
+                        } else if (room.status === 'available') {
+                          setWalkinRoomId(room.id);
+                          setActiveTab('walkin');
+                          setWalkinSuccess('');
+                          setWalkinError('');
+                        }
+                      }}
+                      className={`relative bg-[#FDFCFB] border-t-4 ${statusDetails.borderClass} border-x border-b border-[#E5E1D8] p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-5 group cursor-pointer ${
+                        isCleaningOrMaint ? 'opacity-85 hover:opacity-100' : ''
+                      }`}
+                    >
+                      
+                      {/* Upper Room Stats Bar */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-mono text-[10.5px] bg-[#F5F3EF] px-2.5 py-0.5 text-[#2D2D2D] font-bold rounded-sm border border-[#E5E1D8]">
+                            Estancia {room.number}
+                          </span>
+
+                          {/* Custom Dropdown to change room status directly (No slop buttons!) */}
+                          <div 
+                            onClick={(e) => e.stopPropagation()} 
+                            className="relative"
+                          >
+                            <select
+                              id={`status-select-${room.id}`}
+                              value={room.status}
+                              onChange={(e) => onUpdateRoomStatus(room.id, e.target.value as RoomStatus)}
+                              className="font-mono text-[10px] bg-white border border-[#D1CDC3] text-[#2D2D2D] rounded-md py-1 px-2.5 pr-6 cursor-pointer focus:outline-hidden focus:border-[#2C3627] font-semibold appearance-none leading-none shadow-3xs"
+                              style={{
+                                backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%238C857B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-chevron-down'><polyline points='6 9 12 15 18 9'/></svg>")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 4px center',
+                                backgroundSize: '12px'
+                              }}
+                            >
+                              <option value="available">🟢 Libre</option>
+                              <option value="occupied">🔴 Ocupada</option>
+                              <option value="cleaning">🟠 Limpieza</option>
+                              <option value="maintenance">🟣 Avería</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Room Visual Info */}
+                        <div>
+                          <h4 className="font-serif text-lg font-medium text-[#2C3627] group-hover:text-black transition-colors">
+                            {room.name}
+                          </h4>
+                          
+                          {/* Dynamic view based on occupancy status */}
+                          <div className="mt-2 pt-1">
+                            {isOccupied && activeBooking ? (
+                              <div className="space-y-1.5 bg-rose-50/40 border border-rose-100/60 p-3 rounded-lg text-xs font-sans">
+                                <div className="flex items-center gap-1.5 text-rose-900 font-medium">
+                                  <User className="w-3.5 h-3.5 text-rose-500" />
+                                  <span className="truncate">{activeBooking.guestName}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[#8C857B] font-mono text-[10px]">
+                                  <Calendar className="w-3.5 h-3.5 text-rose-400" />
+                                  <span>Salida: {activeBooking.checkOut}</span>
+                                </div>
+                              </div>
+                            ) : isCleaningOrMaint ? (
+                              <div className="space-y-1.5 bg-[#FAF9F6] border border-[#E5E1D8]/60 p-3 rounded-lg text-xs font-mono text-[#8C857B]">
+                                <span className="flex items-center gap-1.5">
+                                  {room.status === 'cleaning' ? (
+                                    <>
+                                      <Coffee className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                                      <span>Asignada a: Elena G.</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Hammer className="w-3.5 h-3.5 text-purple-500" />
+                                      <span>Técnico: Pedro M.</span>
+                                    </>
+                                  )}
+                                </span>
+                                <span className="text-[9.5px] italic leading-tight block">
+                                  {room.status === 'cleaning' ? 'Higienización de lino y tina' : 'Incidencia en caldera pendiente'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex justify-between items-baseline font-mono text-xs text-[#8C857B]">
+                                <span>Capacidad: {room.capacity} Pax</span>
+                                <span className="font-serif font-medium text-[#2C3627] text-sm bg-[#2C3627]/5 px-2 py-0.5 rounded-sm">{room.price}€ / noche</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Lower helper instructions banner */}
+                      <div className="pt-3 border-t border-[#F5F3EF] flex justify-between items-center text-[10px] font-mono uppercase tracking-wider text-[#8C857B]">
+                        <span>{room.type === 'cabin' ? '★ Cabaña' : room.type === 'suite' ? '★ Suite' : '★ Estándar'}</span>
+                        <span className="text-[#2C3627] group-hover:underline font-semibold">
+                          {isOccupied ? 'Ver detalles →' : room.status === 'available' ? 'Reservar →' : 'Gestionar'}
+                        </span>
+                      </div>
+
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
@@ -717,7 +736,22 @@ export default function ReceptionistView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E1D8] font-sans">
-                  {filteredBookings.length === 0 ? (
+                  {loading ? (
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <tr key={idx} className="animate-pulse">
+                        <td className="py-4 px-4"><div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-16" /></td>
+                        <td className="py-4 px-4">
+                          <div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-28 mb-1" />
+                          <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-20" />
+                        </td>
+                        <td className="py-4 px-4"><div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-8 mx-auto" /></td>
+                        <td className="py-4 px-4"><div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-24" /></td>
+                        <td className="py-4 px-4 text-right"><div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-12 ml-auto" /></td>
+                        <td className="py-4 px-4 text-center"><div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-10 mx-auto" /></td>
+                        <td className="py-4 px-4 text-right"><div className="h-4 bg-[#E5E1D8]/60 rounded-xs w-16 ml-auto" /></td>
+                      </tr>
+                    ))
+                  ) : filteredBookings.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-[#8C857B] font-serif italic text-sm">
                         No se han encontrado registros que coincidan con los filtros de búsqueda.

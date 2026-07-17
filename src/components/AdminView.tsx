@@ -20,6 +20,7 @@ interface AdminViewProps {
   onLogLeave: (employeeId: string, leaveType: 'vacation' | 'sick', days: number) => Promise<void>;
   onAddSubcontractorTicket: (subcontractorId: string, title: string) => Promise<void>;
   onResolveSubcontractorTicket: (subcontractorId: string, ticketId: string) => Promise<void>;
+  loading?: boolean;
 }
 
 export default function AdminView({
@@ -30,7 +31,8 @@ export default function AdminView({
   onClockEmployee,
   onLogLeave,
   onAddSubcontractorTicket,
-  onResolveSubcontractorTicket
+  onResolveSubcontractorTicket,
+  loading
 }: AdminViewProps) {
   const [activeTab, setActiveTab] = useState<'kpis' | 'cameras' | 'employees' | 'subcontractors'>('kpis');
 
@@ -421,89 +423,112 @@ export default function AdminView({
             </div>
 
             <div className="space-y-4">
-              {employees.map((emp) => (
-                <div 
-                  key={emp.id}
-                  className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] rounded-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:border-[#8C857B] transition-colors"
-                >
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-serif text-base font-semibold text-[#2D2D2D]">{emp.name}</h4>
-                      <span className={`px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider rounded-xs border ${
-                        emp.status === 'present'
-                          ? 'bg-[#F5F3EF] border-[#E5E1D8] text-[#2C3627]'
-                          : emp.status === 'vacation'
-                          ? 'bg-[#F5F3EF] border-[#D1CDC3] text-[#8C857B]'
-                          : emp.status === 'sick'
-                          ? 'bg-[#FAF8F5] border-red-200 text-red-700'
-                          : 'bg-[#FDFCFB] border-[#E5E1D8] text-[#8C857B]'
-                      }`}>
-                        {emp.status === 'present' ? 'Fichado Hoy' : emp.status === 'vacation' ? 'Vacaciones' : emp.status === 'sick' ? 'Baja' : 'Ausente'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] font-mono text-[#8C857B] leading-relaxed">
-                      <div>
-                        <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Identificador</span>
-                        <span className="font-semibold text-[#2D2D2D]">{emp.id} · {emp.dni}</span>
+              {loading ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] rounded-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-pulse">
+                    <div className="space-y-2 flex-1 w-full">
+                      <div className="flex items-center gap-3">
+                        <div className="h-5 bg-[#E5E1D8]/60 rounded-xs w-36" />
+                        <div className="h-4 bg-[#E5E1D8]/45 rounded-xs w-20" />
                       </div>
-                      <div>
-                        <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Puesto</span>
-                        <span className="capitalize">{emp.role === 'reception' ? 'Recepción' : emp.role === 'cleaning' ? 'Gobernanta' : emp.role === 'maintenance' ? 'Mantenimiento' : emp.role}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Contrato</span>
-                        <span className="truncate block" title={emp.contractType}>{emp.contractType}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Antigüedad</span>
-                        <span>{emp.tenure}</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+                        <div className="h-6 bg-[#E5E1D8]/30 rounded-xs w-20" />
+                        <div className="h-6 bg-[#E5E1D8]/30 rounded-xs w-20" />
+                        <div className="h-6 bg-[#E5E1D8]/30 rounded-xs w-20" />
+                        <div className="h-6 bg-[#E5E1D8]/30 rounded-xs w-20" />
                       </div>
                     </div>
+                    <div className="flex flex-wrap md:flex-col gap-2 w-full md:w-auto">
+                      <div className="h-8 bg-[#E5E1D8]/50 rounded-xs w-28" />
+                      <div className="h-8 bg-[#E5E1D8]/35 rounded-xs w-28" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                employees.map((emp) => (
+                  <div 
+                    key={emp.id}
+                    className="border border-[#E5E1D8] p-5 bg-[#FDFCFB] rounded-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:border-[#8C857B] transition-colors"
+                  >
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-serif text-base font-semibold text-[#2D2D2D]">{emp.name}</h4>
+                        <span className={`px-2 py-0.5 text-[8px] font-mono uppercase tracking-wider rounded-xs border ${
+                          emp.status === 'present'
+                            ? 'bg-[#F5F3EF] border-[#E5E1D8] text-[#2C3627]'
+                            : emp.status === 'vacation'
+                            ? 'bg-[#F5F3EF] border-[#D1CDC3] text-[#8C857B]'
+                            : emp.status === 'sick'
+                            ? 'bg-[#FAF8F5] border-red-200 text-red-700'
+                            : 'bg-[#FDFCFB] border-[#E5E1D8] text-[#8C857B]'
+                        }`}>
+                          {emp.status === 'present' ? 'Fichado Hoy' : emp.status === 'vacation' ? 'Vacaciones' : emp.status === 'sick' ? 'Baja' : 'Ausente'}
+                        </span>
+                      </div>
 
-                    <div className="pt-2 flex items-center gap-4 text-[11px] font-mono text-[#8C857B] border-t border-[#E5E1D8]">
-                      <span>Horario: <span className="text-[#2D2D2D]">{emp.hourlySchedule}</span></span>
-                      {emp.todayClockIn && (
-                        <span>Entrada hoy: <span className="text-[#2C3627] font-bold">{emp.todayClockIn}h</span></span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[11px] font-mono text-[#8C857B] leading-relaxed">
+                        <div>
+                          <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Identificador</span>
+                          <span className="font-semibold text-[#2D2D2D]">{emp.id} · {emp.dni}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Puesto</span>
+                          <span className="capitalize">{emp.role === 'reception' ? 'Recepción' : emp.role === 'cleaning' ? 'Gobernanta' : emp.role === 'maintenance' ? 'Mantenimiento' : emp.role}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Contrato</span>
+                          <span className="truncate block" title={emp.contractType}>{emp.contractType}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] uppercase tracking-wider text-[#8C857B]">Antigüedad</span>
+                          <span>{emp.tenure}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center gap-4 text-[11px] font-mono text-[#8C857B] border-t border-[#E5E1D8]">
+                        <span>Horario: <span className="text-[#2D2D2D]">{emp.hourlySchedule}</span></span>
+                        {emp.todayClockIn && (
+                          <span>Entrada hoy: <span className="text-[#2C3627] font-bold">{emp.todayClockIn}h</span></span>
+                        )}
+                        <span>Vacaciones: <span className="text-[#2D2D2D]">{emp.vacationsTaken} / {emp.vacationsTotal} días</span></span>
+                        <span>Bajas registradas: <span className="text-red-500">{emp.sickLeaves}</span></span>
+                      </div>
+                    </div>
+
+                    {/* Operational Clock-in Simulator Controls */}
+                    <div className="flex md:flex-col gap-2 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-[#E5E1D8]">
+                      {emp.status !== 'present' ? (
+                        <button 
+                          onClick={() => onClockEmployee(emp.id, 'in')}
+                          className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase bg-[#2C3627] text-white hover:bg-[#2C3627]/90 transition-colors rounded-xs text-center cursor-pointer"
+                        >
+                          Registrar Fichaje
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => onClockEmployee(emp.id, 'out')}
+                          className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase bg-[#8C857B] text-white hover:bg-[#8C857B]/90 transition-colors rounded-xs text-center cursor-pointer"
+                        >
+                          Fichar Salida
+                        </button>
                       )}
-                      <span>Vacaciones: <span className="text-[#2D2D2D]">{emp.vacationsTaken} / {emp.vacationsTotal} días</span></span>
-                      <span>Bajas registradas: <span className="text-red-500">{emp.sickLeaves}</span></span>
+                      
+                      <button 
+                        onClick={() => onLogLeave(emp.id, 'vacation', 2)}
+                        className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase border border-[#D1CDC3] text-[#8C857B] hover:bg-[#F5F3EF] transition-colors rounded-xs text-center cursor-pointer"
+                      >
+                        Asignar Vacac.
+                      </button>
+                      <button 
+                        onClick={() => onLogLeave(emp.id, 'sick', 1)}
+                        className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase border border-red-200 text-red-600 hover:bg-red-50/20 transition-colors rounded-xs text-center cursor-pointer"
+                      >
+                        Loguear Baja
+                      </button>
                     </div>
                   </div>
-
-                  {/* Operational Clock-in Simulator Controls */}
-                  <div className="flex md:flex-col gap-2 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-[#E5E1D8]">
-                    {emp.status !== 'present' ? (
-                      <button 
-                        onClick={() => onClockEmployee(emp.id, 'in')}
-                        className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase bg-[#2C3627] text-white hover:bg-[#2C3627]/90 transition-colors rounded-xs text-center cursor-pointer"
-                      >
-                        Registrar Fichaje
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => onClockEmployee(emp.id, 'out')}
-                        className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase bg-[#8C857B] text-white hover:bg-[#8C857B]/90 transition-colors rounded-xs text-center cursor-pointer"
-                      >
-                        Fichar Salida
-                      </button>
-                    )}
-                    
-                    <button 
-                      onClick={() => onLogLeave(emp.id, 'vacation', 2)}
-                      className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase border border-[#D1CDC3] text-[#8C857B] hover:bg-[#F5F3EF] transition-colors rounded-xs text-center cursor-pointer"
-                    >
-                      Asignar Vacac.
-                    </button>
-                    <button 
-                      onClick={() => onLogLeave(emp.id, 'sick', 1)}
-                      className="flex-1 md:w-32 py-1.5 text-[10px] font-mono uppercase border border-red-200 text-red-600 hover:bg-red-50/20 transition-colors rounded-xs text-center cursor-pointer"
-                    >
-                      Loguear Baja
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}

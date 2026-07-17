@@ -404,12 +404,7 @@ export default function App() {
 
       {/* 3. Main Content Router */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4">
-            <span className="w-6 h-6 border-2 border-[#8C857B] border-t-transparent rounded-full animate-spin" />
-            <span className="font-mono text-xs uppercase tracking-widest text-[#8C857B]">Sincronizando Base de Datos...</span>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="max-w-md mx-auto my-16 p-6 border border-[#F3D1D1] bg-[#F5F3EF] text-[#2D2D2D] rounded-xs space-y-3">
             <div className="flex items-center gap-2 font-medium">
               <AlertCircle className="w-5 h-5 shrink-0" />
@@ -417,7 +412,7 @@ export default function App() {
             </div>
             <p className="text-xs leading-relaxed">{error}</p>
             <button 
-              onClick={() => fetchHotelData(true)}
+              onClick={() => window.location.reload()}
               className="px-4 py-1.5 bg-[#2D2D2D] hover:bg-[#8C857B] text-[#FDFCFB] text-xs font-mono uppercase tracking-wider rounded-xs"
             >
               Reintentar Conexión
@@ -431,6 +426,7 @@ export default function App() {
                 bookings={bookings} 
                 onBook={handleBook}
                 onOpenInvoice={handleOpenInvoiceModal}
+                loading={loading}
               />
             )}
             
@@ -442,6 +438,7 @@ export default function App() {
                 onSendMessage={handleSendMessage}
                 onUpdateRoomStatus={handleUpdateRoomStatus}
                 onBook={handleBook}
+                loading={loading}
               />
             )}
 
@@ -455,6 +452,7 @@ export default function App() {
                 onLogLeave={handleLogLeave}
                 onAddSubcontractorTicket={handleAddSubcontractorTicket}
                 onResolveSubcontractorTicket={handleResolveSubcontractorTicket}
+                loading={loading}
               />
             )}
           </div>
@@ -470,7 +468,7 @@ export default function App() {
       />
 
       {/* 5. Floating Chat box in compact mode for guest interaction */}
-      {currentRole === 'consumer' && !loading && !error && (
+      {currentRole === 'consumer' && !error && (
         <ChatBox 
           currentRole="consumer"
           currentUserName="Invitado Web"
