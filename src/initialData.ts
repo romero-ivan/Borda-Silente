@@ -11,7 +11,7 @@ export const INITIAL_DATA: HotelData = {
       price: 175,
       status: 'maintenance',
       features: ['Paredes de piedra natural', 'Vigas de abeto visto', 'Ropa de lino orgánico', 'Vistas al valle de Ansó'],
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80'
+      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=500&q=70'
     },
     {
       id: 102,
@@ -22,7 +22,7 @@ export const INITIAL_DATA: HotelData = {
       price: 190,
       status: 'occupied',
       features: ['Aroma a madera de pino', 'Mobiliario de roble artesanal', 'Chimenea de piedra', 'Terraza privada'],
-      image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=600&q=80'
+      image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=500&q=70'
     },
     {
       id: 103,
@@ -33,7 +33,7 @@ export const INITIAL_DATA: HotelData = {
       price: 185,
       status: 'cleaning',
       features: ['Revestimiento de cedro silvestre', 'Ventanal panorámico al pinar', 'Ducha de lluvia', 'Suplemento de té local'],
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=70'
     },
     {
       id: 201,
@@ -44,7 +44,7 @@ export const INITIAL_DATA: HotelData = {
       price: 265,
       status: 'available',
       features: ['Bañera de madera de cedro natural', 'Rincón de tatami', 'Estufa de pellets ecológica', 'Vistas directas a Monte Perdido'],
-      image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80'
+      image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=500&q=70'
     },
     {
       id: 202,
@@ -55,7 +55,7 @@ export const INITIAL_DATA: HotelData = {
       price: 295,
       status: 'available',
       features: ['Techo acristalado para ver estrellas', 'Chimenea suspendida de hierro', 'Cafetera artesanal', 'Balcón volado'],
-      image: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=600&q=80'
+      image: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=500&q=70'
     },
     {
       id: 301,
@@ -66,7 +66,7 @@ export const INITIAL_DATA: HotelData = {
       price: 450,
       status: 'maintenance',
       features: ['Estructura independiente de madera negra', 'Bañera termal de piedra exterior', 'Cocina rústica', 'Aislamiento acústico completo'],
-      image: 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?auto=format&fit=crop&w=600&q=80'
+      image: 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?auto=format&fit=crop&w=500&q=70'
     }
   ],
   bookings: [

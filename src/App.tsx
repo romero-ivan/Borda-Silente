@@ -75,7 +75,12 @@ export default function App() {
         // 1. Check and seed Firestore if empty (only checked/seeded once)
         const roomsRef = collection(db, 'rooms');
         const roomsSnap = await getDocs(roomsRef);
-        if (roomsSnap.empty) {
+        const needsImageMigration = !roomsSnap.empty && roomsSnap.docs.some(doc => {
+          const img = doc.data().image || '';
+          return img.includes('w=600') || img.includes('q=80');
+        });
+
+        if (roomsSnap.empty || needsImageMigration) {
           console.log('Seeding initial Borda Silente data to Firestore...');
           for (const r of INITIAL_DATA.rooms) {
             await setDoc(doc(db, 'rooms', r.id.toString()), r);

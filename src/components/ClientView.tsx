@@ -143,10 +143,13 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
         {/* Cinematic Mountain Background Image with Cinematic Dark Gradient Mask */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
-            src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=80" 
+            src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=70" 
             alt="Misty Pyrenees Peaks" 
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover opacity-20 scale-105 transform translate-y-[-5%] transition-transform duration-[3000ms] hover:scale-100"
+            loading="eager"
+            {...{ fetchpriority: "high" }}
+            decoding="sync"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1C2319] via-[#1C2319]/80 to-[#1C2319]/30" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1C2319]/90 via-[#1C2319]/50 to-transparent" />
