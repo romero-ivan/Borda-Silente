@@ -362,8 +362,9 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                 </div>
               ))
             ) : (
-              rooms.map((room) => {
+              rooms.map((room, index) => {
                 const isSelected = selectedRoomId === room.id;
+                const isLCP = index === 0;
                 return (
                   <motion.div 
                     layout
@@ -390,6 +391,9 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                           alt={room.name}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+                          loading={isLCP ? "eager" : "lazy"}
+                          {...{ fetchpriority: isLCP ? "high" : "low" }}
+                          decoding={isLCP ? "sync" : "async"}
                         />
                         
                         {/* Interactive pill for Room status */}
