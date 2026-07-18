@@ -106,15 +106,24 @@ function ImageCarousel({ images, alt, isOccupied, occupiedText, isLCP }: ImageCa
       onTouchEnd={handleTouchEnd}
       className="relative aspect-[16/10] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner group/carousel touch-pan-y"
     >
-      <img 
-        src={images[index]} 
-        alt={`${alt} - Imagen ${index + 1}`}
-        referrerPolicy="no-referrer"
-        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out select-none pointer-events-none"
-        loading={isLCP ? "eager" : "lazy"}
-        {...{ fetchpriority: isLCP ? "high" : "low" }}
-        decoding={isLCP ? "sync" : "async"}
-      />
+      {/* Slides Container */}
+      <div 
+        className="flex w-full h-full transition-transform duration-500 ease-out"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {images.map((img, idx) => (
+          <img 
+            key={idx}
+            src={img} 
+            alt={`${alt} - Imagen ${idx + 1}`}
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover shrink-0 select-none pointer-events-none group-hover:scale-103 transition-transform duration-700 ease-out"
+            loading={isLCP && idx === 0 ? "eager" : "lazy"}
+            {...{ fetchpriority: isLCP && idx === 0 ? "high" : "low" }}
+            decoding={isLCP && idx === 0 ? "sync" : "async"}
+          />
+        ))}
+      </div>
 
       {/* Prev/Next buttons (Only show if multiple images exist) */}
       {images.length > 1 && (
