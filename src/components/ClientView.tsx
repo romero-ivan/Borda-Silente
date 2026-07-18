@@ -715,45 +715,45 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center max-w-5xl mx-auto pt-4">
           {/* Wifi */}
-          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
-              <Wifi className="w-5.5 h-5.5" />
+          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+              <Wifi className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:rotate-12" />
             </div>
             <div>
-              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Conexión Satelital</h4>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Conexión Satelital</h4>
               <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Starlink de alta velocidad en todo el refugio.</p>
             </div>
           </div>
 
           {/* Desayuno */}
-          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
-              <Sparkles className="w-5.5 h-5.5" />
+          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+              <Sparkles className="w-5.5 h-5.5 transition-all duration-700 ease-out group-hover:scale-120 group-hover:rotate-45 group-hover:text-[#E5B181]" />
             </div>
             <div>
-              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Desayuno Orgánico</h4>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Desayuno Orgánico</h4>
               <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Recetas locales y pan artesano horneado al amanecer.</p>
             </div>
           </div>
 
           {/* Calefacción chimenea */}
-          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
-              <Flame className="w-5.5 h-5.5" />
+          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+              <Flame className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-1 group-hover:text-amber-500" />
             </div>
             <div>
-              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Hogar de Leña</h4>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Hogar de Leña</h4>
               <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Chimeneas independientes con suministro de abedul.</p>
             </div>
           </div>
 
           {/* Tinas de Cedro */}
-          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
-              <Thermometer className="w-5.5 h-5.5" />
+          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+              <Thermometer className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:text-red-400" />
             </div>
             <div>
-              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Tinas Calientes</h4>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Tinas Calientes</h4>
               <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Baños de inmersión profunda con aceites esenciales.</p>
             </div>
           </div>
