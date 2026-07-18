@@ -14,9 +14,9 @@ import { Room, Booking, BookingPlatform } from '../types.js';
 
 const ROOM_IMAGES_MAP: Record<number, string[]> = {
   101: [
-    "/room_101_1.jpg", // Dormitorio principal rústico
-    "/room_101_2.jpg", // Baño de cedro
-    "/room_101_3.jpg"  // Vistas a la montaña y chimenea
+    "https://images.unsplash.com/photo-1549693578-d683be217e58?auto=format&fit=crop&w=600&q=70", // Dormitorio clásico de vigas y piedra
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=70", // Baño rústico
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=70"  // Vistas al valle de Ansó
   ],
   102: [
     "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=600&q=70", // Dormitorio con chimenea de piedra
@@ -24,9 +24,9 @@ const ROOM_IMAGES_MAP: Record<number, string[]> = {
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=70"  // Vistas al valle forestal
   ],
   103: [
-    "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=70", // Dormitorio con gran ventanal al bosque
-    "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=70", // Baño ducha de lluvia
-    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=70"  // Vistas del pinar
+    "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=600&q=70", // Dormitorio rústico con ventana al pinar
+    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=70", // Baño con ducha forestal
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=70"  // Vistas del pinar y niebla
   ],
   201: [
     "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=70", // Dormitorio abuhardillado tatami
@@ -39,9 +39,9 @@ const ROOM_IMAGES_MAP: Record<number, string[]> = {
     "https://images.unsplash.com/photo-1486496146582-9ffcd0b2b2b7?auto=format&fit=crop&w=600&q=70"  // Vistas balcón volado atardecer
   ],
   301: [
-    "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=70", // Dormitorio Imperial Master Suite
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=70", // Baño espacioso piedra y madera
-    "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=600&q=70"  // Vistas cordillera 360 grados
+    "/room_101_1.jpg", // Cabaña Silente Exclusiva - Dormitorio
+    "/room_101_2.jpg", // Cabaña Silente Exclusiva - Baño termal de cedro
+    "/room_101_3.jpg"  // Cabaña Silente Exclusiva - Chimenea suspendida y vistas
   ]
 };
 
