@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Compass, KeyRound, ShieldAlert, Sparkles, AlertCircle, Heart, Map, MapPin } from 'lucide-react';
+import { Compass, KeyRound, ShieldAlert, Sparkles, AlertCircle, Heart, Map, MapPin, Phone } from 'lucide-react';
 import { Room, Booking, Employee, Subcontractor, ChatMessage, SenderRole, RoomStatus, BookingPlatform } from './types.js';
 import ClientView from './components/ClientView.js';
 import ReceptionistView from './components/ReceptionistView.js';
