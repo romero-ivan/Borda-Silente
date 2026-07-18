@@ -15,7 +15,7 @@ import { Room, Booking, BookingPlatform } from '../types.js';
 const ROOM_IMAGES_MAP: Record<number, string[]> = {
   101: [
     "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=600&q=70", // Dormitorio clásico de vigas y piedra
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=70", // Baño rústico
+    "https://images.unsplash.com/photo-1584622781564-1d987f7333c1?auto=format&fit=crop&w=600&q=70", // Baño rústico de madera y piedra
     "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=70"  // Vistas al valle de Ansó
   ],
   102: [
