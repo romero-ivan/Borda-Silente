@@ -29,7 +29,7 @@ const ROOM_IMAGES_MAP: Record<number, string[]> = {
     "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=70"
   ],
   201: [
-    "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=600&q=70",
     "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=70",
     "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=70"
   ],
