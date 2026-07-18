@@ -4,9 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Compass, KeyRound, ShieldAlert, Sparkles, AlertCircle, Heart } from 'lucide-react';
+import { Compass, KeyRound, ShieldAlert, Sparkles, AlertCircle, Heart, Map, MapPin } from 'lucide-react';
 import { Room, Booking, Employee, Subcontractor, ChatMessage, SenderRole, RoomStatus, BookingPlatform } from './types.js';
-import RoleSwitcher from './components/RoleSwitcher.js';
 import ClientView from './components/ClientView.js';
 import ReceptionistView from './components/ReceptionistView.js';
 import AdminView from './components/AdminView.js';
@@ -381,43 +380,71 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FDFCFB] wabi-paper text-[#2D2D2D] flex flex-col font-sans selection:bg-[#E5E1D8] selection:text-[#8C857B]">
       
-      {/* 1. Demostración Role Switcher (Always available at the top for review) */}
-      <RoleSwitcher currentRole={currentRole} onChangeRole={setCurrentRole} />
-
-      {/* 2. Top Navigation Bar */}
-      <header className="px-6 py-4 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB] print:hidden">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 border border-[#2D2D2D] flex items-center justify-center bg-[#FDFCFB] transition-all">
-            <Compass className="w-5 h-5 text-[#2D2D2D]" />
+      {/* 2. Top Navigation Bar (Sticky & Standard Compliant) */}
+      {currentRole === 'consumer' ? (
+        <header className="fixed top-0 left-0 right-0 z-50 px-6 py-3.5 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB]/90 backdrop-blur-md print:hidden">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 border border-[#2C3627] flex items-center justify-center bg-transparent transition-all">
+              <Compass className="w-5 h-5 text-[#2C3627]" />
+            </div>
+            <div>
+              <span className="font-serif text-base font-semibold tracking-widest uppercase text-[#2D2D2D] block">Borda Silente</span>
+              <span className="font-mono text-[8px] uppercase text-[#8C857B] block tracking-[0.2em] mt-0.5">Refugio de Montaña</span>
+            </div>
           </div>
-          <div>
-            <span className="font-serif text-lg font-medium tracking-widest uppercase text-[#2D2D2D]">Borda Silente</span>
-            <span className="font-mono text-[9px] uppercase text-[#8C857B] block tracking-[0.2em] mt-0.5">Refugio de Montaña</span>
-          </div>
-        </div>
 
-        {/* Dynamic header pill reflecting current workspace */}
-        <div className="flex items-center gap-2">
-          {currentRole === 'consumer' ? (
-            <span className="font-mono text-[10px] text-[#2C3627] bg-[#F5F3EF] border border-[#E5E1D8] px-2.5 py-1 tracking-wider uppercase rounded-xs">
-              Portal del Huésped
+          {/* Central links for navigation (Desktop only, clean and minimal) */}
+          <nav className="hidden md:flex items-center gap-8 font-mono text-[10px] uppercase tracking-widest text-[#8C857B]">
+            <a href="#rooms-section" className="hover:text-[#2C3627] transition-colors">Habitaciones</a>
+            <a href="#amenities-section" className="hover:text-[#2C3627] transition-colors">Servicios</a>
+            <a href="#gastronomy-section" className="hover:text-[#2C3627] transition-colors">Gastronomía</a>
+            <a href="#social-proof-section" className="hover:text-[#2C3627] transition-colors">Reseñas</a>
+            <a href="#contact-section" className="hover:text-[#2C3627] transition-colors">Ubicación</a>
+          </nav>
+
+          {/* Right Side: Localization & CTA Book Now Button */}
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline font-mono text-[9px] text-[#8C857B] uppercase tracking-wider bg-[#F5F3EF] px-2 py-1 border border-[#E5E1D8]/60">
+              ES | EUR
             </span>
-          ) : currentRole === 'receptionist' ? (
-            <span className="font-mono text-[10px] text-[#8C857B] bg-[#F5F3EF] border border-[#D1CDC3] px-2.5 py-1 tracking-wider uppercase rounded-xs flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5" />
-              Mostrador Principal
-            </span>
-          ) : (
-            <span className="font-mono text-[10px] text-[#FDFCFB] bg-[#2D2D2D] px-2.5 py-1 tracking-wider uppercase rounded-xs flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-[#E5B181]" />
-              Supervisión de Dirección
-            </span>
-          )}
-        </div>
-      </header>
+            <a 
+              href="#booking-engine"
+              className="bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-semibold rounded-xs shadow-xs"
+            >
+              Reservar Ahora
+            </a>
+          </div>
+        </header>
+      ) : (
+        <header className="px-6 py-4 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB] print:hidden">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 border border-[#2D2D2D] flex items-center justify-center bg-[#FDFCFB] transition-all">
+              <Compass className="w-5 h-5 text-[#2D2D2D]" />
+            </div>
+            <div>
+              <span className="font-serif text-lg font-medium tracking-widest uppercase text-[#2D2D2D]">Borda Silente</span>
+              <span className="font-mono text-[9px] uppercase text-[#8C857B] block tracking-[0.2em] mt-0.5">Refugio de Montaña</span>
+            </div>
+          </div>
+          {/* Dynamic header pill reflecting current workspace */}
+          <div className="flex items-center gap-2">
+            {currentRole === 'receptionist' ? (
+              <span className="font-mono text-[10px] text-[#8C857B] bg-[#F5F3EF] border border-[#D1CDC3] px-2.5 py-1 tracking-wider uppercase rounded-xs flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5" />
+                Mostrador Principal
+              </span>
+            ) : (
+              <span className="font-mono text-[10px] text-[#FDFCFB] bg-[#2D2D2D] px-2.5 py-1 tracking-wider uppercase rounded-xs flex items-center gap-1.5">
+                <ShieldAlert className="w-3.5 h-3.5 text-[#E5B181]" />
+                Supervisión de Dirección
+              </span>
+            )}
+          </div>
+        </header>
+      )}
 
       {/* 3. Main Content Router */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+      <main className={`flex-1 w-full mx-auto ${currentRole === 'consumer' ? 'pt-16 pb-6' : 'p-4 md:p-6'}`}>
         {error ? (
           <div className="max-w-md mx-auto my-16 p-6 border border-[#F3D1D1] bg-[#F5F3EF] text-[#2D2D2D] rounded-xs space-y-3">
             <div className="flex items-center gap-2 font-medium">
@@ -490,6 +517,79 @@ export default function App() {
           onSendMessage={handleSendMessage}
           compact={true}
         />
+      )}
+
+      {/* 6. Standard Utility Footer with hidden Portal Staff switcher */}
+      {currentRole === 'consumer' && (
+        <footer id="contact-section" className="bg-[#1C2319] text-[#E5E1D8]/70 border-t border-[#E5E1D8]/10 py-16 px-6 sm:px-12 mt-20 print:hidden font-sans">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-10">
+            {/* Column 1: Logo & Vision */}
+            <div className="md:col-span-4 space-y-4">
+              <div className="flex items-center gap-3 text-white">
+                <div className="w-8 h-8 border border-white/20 flex items-center justify-center bg-transparent">
+                  <Compass className="w-4.5 h-4.5 text-[#E5B181]" />
+                </div>
+                <div>
+                  <span className="font-serif text-base font-semibold tracking-widest uppercase block">Borda Silente</span>
+                  <span className="font-mono text-[7px] uppercase text-[#E5B181] block tracking-[0.2em] mt-0.5">Refugio de Montaña</span>
+                </div>
+              </div>
+              <p className="text-[11px] font-light leading-relaxed max-w-sm">
+                Un santuario de desconexión y silencio en el corazón del Pirineo de Huesca. La arquitectura tradicional fusionada con el descanso elemental de montaña.
+              </p>
+            </div>
+
+            {/* Column 2: Navigation Links */}
+            <div className="md:col-span-2 space-y-3">
+              <h4 className="font-mono text-[10px] uppercase tracking-widest text-[#E5B181] font-semibold">Explorar</h4>
+              <ul className="text-[11px] space-y-2 font-light">
+                <li><a href="#rooms-section" className="hover:text-white transition-colors">Habitaciones & Suites</a></li>
+                <li><a href="#amenities-section" className="hover:text-white transition-colors">Instalaciones & Servicios</a></li>
+                <li><a href="#gastronomy-section" className="hover:text-white transition-colors">La Cocina de Brasa</a></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Contact Direct Details */}
+            <div className="md:col-span-3 space-y-3">
+              <h4 className="font-mono text-[10px] uppercase tracking-widest text-[#E5B181] font-semibold">Contacto Directo</h4>
+              <ul className="text-[11px] space-y-2 font-mono text-[10px]">
+                <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-[#E5B181]" /> +34 974 330 112</li>
+                <li className="flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-[#E5B181] shrink-0 mt-0.5" /> 
+                  <span className="font-sans font-light leading-snug">Camino de las Borda s/n, 22728 Valle de Ansó, Huesca, España</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4: Map & Legal */}
+            <div className="md:col-span-3 space-y-3">
+              <h4 className="font-mono text-[10px] uppercase tracking-widest text-[#E5B181] font-semibold">Legal & Reservas</h4>
+              <ul className="text-[11px] space-y-2 font-light">
+                <li><a href="https://maps.google.com/?q=Valle+de+Anso+Huesca+Spain" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline flex items-center gap-1.5"><Map className="w-3.5 h-3.5" /> Ver Ruta en Google Maps</a></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">Política de Cancelación (Flexible 48h)</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">Aviso Legal y Privacidad</span></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Row */}
+          <div className="max-w-7xl mx-auto border-t border-[#E5E1D8]/10 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-mono tracking-wider">
+            <span>Borda Silente S.A. © 2026. Todos los derechos reservados.</span>
+            
+            {/* The hidden staff switch portal button */}
+            <button 
+              onClick={() => {
+                const roles: SenderRole[] = ['consumer', 'receptionist', 'admin'];
+                const nextRole = roles[(roles.indexOf(currentRole) + 1) % roles.length];
+                setCurrentRole(nextRole);
+              }}
+              className="text-[#E5B181]/70 hover:text-[#E5B181] underline transition-colors cursor-pointer uppercase flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-sm hover:bg-white/10"
+            >
+              <KeyRound className="w-3 h-3 text-[#E5B181]" />
+              Acceso Staff ({currentRole === 'consumer' ? 'Huésped' : currentRole === 'receptionist' ? 'Recepción' : 'Director'})
+            </button>
+          </div>
+        </footer>
       )}
     </div>
   );

@@ -3,15 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, Users, Shield, Compass, Sparkles, AlertCircle, FileText, 
-  Mail, Phone, MapPin, Flame, Thermometer 
+  Mail, Phone, MapPin, Flame, Thermometer, Wifi, Star, ArrowRight, X, Clock, Map
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Room, Booking, BookingPlatform } from '../types.js';
@@ -32,51 +27,50 @@ interface ClientViewProps {
 }
 
 export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loading }: ClientViewProps) {
-  // Booking Form State
-  const [selectedRoomId, setSelectedRoomId] = useState<number>(101);
+  // Booking Bar States (defaults for search)
+  const [searchCheckIn, setSearchCheckIn] = useState('2026-07-14');
+  const [searchCheckOut, setSearchCheckOut] = useState('2026-07-16');
+  const [searchGuests, setSearchGuests] = useState(2);
+  const [searchChildren, setSearchChildren] = useState(0);
+  const [searchFiltered, setSearchFiltered] = useState(false);
 
-  // Sync selectedRoomId when rooms list actually loads
-  useEffect(() => {
-    if (rooms.length > 0 && !rooms.some(r => r.id === selectedRoomId)) {
-      setSelectedRoomId(rooms[0].id);
-    }
-  }, [rooms, selectedRoomId]);
-
+  // Modal reservation form states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookingRoomId, setBookingRoomId] = useState<number | null>(null);
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
-  const [checkIn, setCheckIn] = useState('2026-07-14');
-  const [checkOut, setCheckOut] = useState('2026-07-16');
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [lastBookedEmail, setLastBookedEmail] = useState('');
 
-  const isFirstRender = useRef(true);
+  // Selected Room for Modal
+  const modalRoom = rooms.find(r => r.id === bookingRoomId);
 
-  // Auto-scroll to booking form on mobile when room selection changes (skips initial mount)
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
+  // Filter Rooms based on Booking Bar search inputs
+  const totalGuests = Number(searchGuests) + Number(searchChildren);
 
-    if (window.innerWidth < 1024) {
-      const element = document.getElementById('booking-engine-card');
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
-      }
-    }
-  }, [selectedRoomId]);
+  const filteredRooms = rooms.filter(room => {
+    // 1. Capacity filter
+    if (room.capacity < totalGuests) return false;
 
-  // Selected Room
-  const selectedRoom = rooms.find(r => r.id === selectedRoomId);
+    // 2. Availability filter
+    const isOccupied = bookings.some(booking => {
+      if (booking.roomId !== room.id) return false;
+      return booking.checkIn < searchCheckOut && booking.checkOut > searchCheckIn;
+    });
+
+    return !isOccupied;
+  });
+
+  // Fallback: if no rooms available, show all but flag availability
+  const isNoRoomsAvailable = searchFiltered && filteredRooms.length === 0;
+  const roomsToDisplay = isNoRoomsAvailable ? rooms : (searchFiltered ? filteredRooms : rooms);
 
   // Nights calculation
   const calculateNights = () => {
     try {
-      const d1 = new Date(checkIn);
-      const d2 = new Date(checkOut);
+      const d1 = new Date(searchCheckIn);
+      const d2 = new Date(searchCheckOut);
       const diff = Math.ceil(Math.abs(d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
       return isNaN(diff) || diff <= 0 ? 1 : diff;
     } catch {
@@ -85,13 +79,33 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
   };
 
   const nights = calculateNights();
-  const roomPriceTotal = selectedRoom ? selectedRoom.price * nights : 0;
+  const roomPriceTotal = modalRoom ? modalRoom.price * nights : 0;
   const ecoTax = 1.5 * nights;
   const cleaningFee = 25.0;
   const subtotal = roomPriceTotal + ecoTax + cleaningFee;
   const iva = subtotal * 0.1;
   const total = subtotal + iva;
 
+  // Handle Search Execution
+  const handleOpenBookingModal = (roomId: number) => {
+    setBookingRoomId(roomId);
+    setIsModalOpen(true);
+    setBookingError('');
+    setBookingSuccess('');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchFiltered(true);
+    
+    // Smooth scroll to rooms catalog section
+    const element = document.getElementById('rooms-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Handle Booking Submission
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     setBookingError('');
@@ -103,24 +117,24 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
       return;
     }
 
-    if (new Date(checkIn) >= new Date(checkOut)) {
+    if (new Date(searchCheckIn) >= new Date(searchCheckOut)) {
       setBookingError('La fecha de salida debe ser posterior a la de entrada.');
       return;
     }
+
+    if (!bookingRoomId) return;
 
     try {
       await onBook({
         guestName,
         guestEmail,
-        roomId: selectedRoomId,
-        checkIn,
-        checkOut,
+        roomId: bookingRoomId,
+        checkIn: searchCheckIn,
+        checkOut: searchCheckOut,
         platform: 'web'
       });
       setLastBookedEmail(guestEmail);
       setBookingSuccess('¡Estancia reservada con éxito! Su factura digital está lista para descargar.');
-      
-      // Clear contact form but keep selection for invoice access
       setGuestName('');
       setGuestEmail('');
     } catch (err: any) {
@@ -128,132 +142,419 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
     }
   };
 
-  const getRoomById = (id: number) => rooms.find(r => r.id === id);
-
   // Find the last booking created in this session by matching the lastBookedEmail
   const lastBooking = [...bookings]
     .reverse()
     .find(b => b.guestEmail.toLowerCase().trim() === lastBookedEmail.toLowerCase().trim());
 
+  // Helper to get room properties
+  const getRoomMetrics = (id: number) => {
+    switch (id) {
+      case 101: return { size: '28 m²', bed: 'Cama Queen Size', icon: '🌲' };
+      case 102: return { size: '32 m²', bed: 'Cama Queen Size', icon: '🏔️' };
+      case 103: return { size: '30 m²', bed: 'Cama Queen Size', icon: '🍁' };
+      case 201: return { size: '45 m²', bed: 'Cama King Size', icon: '🛁' };
+      case 202: return { size: '50 m²', bed: 'Cama King Size', icon: '🔥' };
+      default: return { size: '75 m²', bed: 'Cama Imperial King', icon: '🏡' };
+    }
+  };
+
   return (
-    <div className="space-y-20 pb-24">
+    <div className="space-y-24 pb-12">
       
-      {/* Editorial Panoramic Hero Header */}
-      <div className="relative py-24 sm:py-28 px-8 sm:px-12 overflow-hidden rounded-2xl border border-[#E5E1D8] bg-[#1C2319] shadow-2xl transition-all duration-700 hover:shadow-[#1C2319]/10">
-        {/* Cinematic Mountain Background Image with Cinematic Dark Gradient Mask */}
+      {/* 1. HERO SECTION & OVERLAY BOOKING ENGINE */}
+      <section className="relative min-h-[85vh] flex flex-col justify-between items-center text-[#FDFCFB] rounded-2xl overflow-hidden border border-[#E5E1D8] bg-[#1C2319] shadow-2xl p-6 sm:p-12">
+        {/* Full-screen Background image */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
             src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=70" 
             alt="Misty Pyrenees Peaks" 
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover opacity-20 scale-105 transform translate-y-[-5%] transition-transform duration-[3000ms] hover:scale-100"
+            className="w-full h-full object-cover opacity-25 scale-105 transform translate-y-[-2%] transition-transform duration-[3000ms] hover:scale-100"
             loading="eager"
             {...{ fetchpriority: "high" }}
             decoding="sync"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1C2319] via-[#1C2319]/80 to-[#1C2319]/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1C2319]/90 via-[#1C2319]/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1C2319] via-[#1C2319]/70 to-[#1C2319]/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1C2319]/50 via-transparent to-transparent" />
         </div>
 
-        {/* Decorative thin structural outline mimicking architectural blueprints */}
-        <div className="absolute inset-4 sm:inset-6 border border-[#FDFCFB]/10 rounded-xl pointer-events-none z-10" />
-
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8 text-[#FDFCFB] py-6 sm:py-10">
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-[#2C3627]/60 backdrop-blur-md border border-[#FDFCFB]/15 rounded-full text-[10px] font-mono uppercase tracking-[0.25em] text-[#E5B181]">
+        {/* Top Spacer or Small Indicator */}
+        <div className="relative z-10 pt-4 flex flex-col items-center gap-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#2C3627]/80 border border-[#FDFCFB]/15 rounded-full text-[9px] font-mono uppercase tracking-[0.25em] text-[#E5B181] backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181] animate-pulse" />
-            <Compass className="w-3.5 h-3.5" />
+            <Compass className="w-3 h-3" />
             <span>Valle de Ansó · Pirineos</span>
           </div>
-          
-          <div className="space-y-4">
-            <h1 className="font-serif text-6xl sm:text-7xl md:text-8xl font-light tracking-tight text-[#FDFCFB] leading-[0.85] drop-shadow-sm">
-              Borda Silente
-            </h1>
-            <p className="font-serif italic text-xl sm:text-2xl md:text-3xl text-[#E5E1D8]/90 font-light tracking-wide">
-              La arquitectura del sosiego.
-            </p>
-          </div>
-
-          <p className="font-sans text-xs sm:text-sm sm:text-base text-[#E5E1D8]/80 max-w-2xl mx-auto font-light leading-relaxed px-4">
-            Un santuario de piedra tradicional, vigas centenarias y fuego de leña suspendido a 1.280m de altitud. Aquí, las cumbres aragonesas no solo se contemplan: se habitan en íntimo silencio, lejos del ruido del mundo.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-4 text-[10px] font-mono uppercase tracking-[0.2em] text-[#E5B181] pt-2">
-            <span className="flex items-center gap-2 bg-[#2C3627]/40 px-4 py-2 rounded-full border border-[#FDFCFB]/10 backdrop-blur-xs">
-              <MapPin className="w-3.5 h-3.5" /> Huesca, España
-            </span>
-            <span className="flex items-center gap-2 bg-[#2C3627]/40 px-4 py-2 rounded-full border border-[#FDFCFB]/10 backdrop-blur-xs">
-              <Shield className="w-3.5 h-3.5" /> Altitud 1.280m
-            </span>
-          </div>
         </div>
-      </div>
 
-      {/* Philosophy Callout: High-End Japanese Rustic & Nordic Mountain Blend */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
-        
+        {/* Hero Central Titles */}
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6 my-auto py-8">
+          <h1 className="font-serif text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light tracking-tight leading-none drop-shadow-sm">
+            Borda Silente
+          </h1>
+          <p className="font-serif italic text-lg sm:text-xl md:text-2xl text-[#E5E1D8]/95 font-light tracking-wide max-w-lg mx-auto">
+            La arquitectura del sosiego.
+          </p>
+          <p className="font-sans text-xs sm:text-sm text-[#E5E1D8]/80 max-w-xl mx-auto font-light leading-relaxed px-4 pt-2">
+            Un refugio de piedra tradicional, vigas centenarias y fuego de leña suspendido a 1.280 metros de altitud. El auténtico silencio pirenaico hecho estancia.
+          </p>
+        </div>
+
+        {/* Overlay Booking Engine Bar (Horizontal on Desktop, Single-column on Mobile) */}
+        <div id="booking-engine" className="relative z-10 w-full max-w-5xl bg-[#FDFCFB] border border-[#E5E1D8] rounded-xl shadow-2xl p-4 sm:p-5 text-[#2D2D2D] -mb-10 sm:-mb-14">
+          <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+            
+            {/* Check-In Date */}
+            <div className="flex-1 min-w-[140px] space-y-1.5">
+              <label className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-semibold">
+                <Calendar className="w-3.5 h-3.5 text-[#E5B181]" />
+                Entrada
+              </label>
+              <input 
+                type="date" 
+                value={searchCheckIn}
+                onChange={(e) => setSearchCheckIn(e.target.value)}
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs font-mono px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 transition-all cursor-pointer"
+                min="2026-01-01"
+              />
+            </div>
+
+            {/* Separator Line */}
+            <div className="hidden lg:block w-px h-8 bg-[#E5E1D8]" />
+
+            {/* Check-Out Date */}
+            <div className="flex-1 min-w-[140px] space-y-1.5">
+              <label className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-semibold">
+                <Calendar className="w-3.5 h-3.5 text-[#E5B181]" />
+                Salida
+              </label>
+              <input 
+                type="date" 
+                value={searchCheckOut}
+                onChange={(e) => setSearchCheckOut(e.target.value)}
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs font-mono px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 transition-all cursor-pointer"
+                min={searchCheckIn}
+              />
+            </div>
+
+            {/* Separator Line */}
+            <div className="hidden lg:block w-px h-8 bg-[#E5E1D8]" />
+
+            {/* Adults Select */}
+            <div className="w-full lg:w-[130px] space-y-1.5">
+              <label className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-semibold">
+                <Users className="w-3.5 h-3.5 text-[#E5B181]" />
+                Adultos
+              </label>
+              <select 
+                value={searchGuests}
+                onChange={(e) => setSearchGuests(Number(e.target.value))}
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] cursor-pointer"
+              >
+                <option value={1}>1 Adulto</option>
+                <option value={2}>2 Adultos</option>
+                <option value={3}>3 Adultos</option>
+                <option value={4}>4 Adultos</option>
+              </select>
+            </div>
+
+            {/* Children Select */}
+            <div className="w-full lg:w-[130px] space-y-1.5">
+              <label className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-semibold">
+                <Users className="w-3.5 h-3.5 text-[#E5B181]" />
+                Niños
+              </label>
+              <select 
+                value={searchChildren}
+                onChange={(e) => setSearchChildren(Number(e.target.value))}
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] cursor-pointer"
+              >
+                <option value={0}>Sin Niños</option>
+                <option value={1}>1 Niño</option>
+                <option value={2}>2 Niños</option>
+              </select>
+            </div>
+
+            {/* Search Button (CTA) */}
+            <button 
+              type="submit"
+              className="lg:self-end bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-6 py-3 font-mono text-xs uppercase tracking-widest transition-all duration-300 font-bold rounded-md cursor-pointer shadow-sm text-center flex items-center justify-center gap-2 h-[42px] mt-2 lg:mt-0"
+            >
+              Buscar Disponibilidad
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* 2. PHILOSOPHY & CONCEPT (WITHOUT ROMAN NUMERALS I, II, III) */}
+      <section className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 pt-10 sm:pt-14">
         {/* Card 1: Materiales Nobles */}
-        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 relative overflow-hidden group hover:border-[#2C3627] hover:shadow-xl transition-all duration-500 rounded-xl">
-          {/* Decorative absolute background number */}
-          <span className="font-serif italic text-9xl text-[#E5B181]/10 absolute right-4 -top-2 select-none pointer-events-none group-hover:scale-110 group-hover:text-[#E5B181]/20 transition-all duration-500">I</span>
-          
-          <div className="w-12 h-12 rounded-xl bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-[#FDFCFB] transition-all duration-500 shadow-sm">
-            <Compass className="w-5.5 h-5.5" />
+        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 rounded-xl transition-all duration-500 hover:border-[#2C3627] hover:shadow-xl group">
+          <div className="w-11 h-11 rounded-lg bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+            <Compass className="w-5 h-5" />
           </div>
-          
-          <div className="space-y-2 relative z-10">
-            <h3 className="font-serif text-xl text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2.5">
+          <div className="space-y-2">
+            <h3 className="font-serif text-lg text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2">
               Materiales Nobles
             </h3>
-            <p className="text-xs text-[#8C857B] leading-relaxed font-light">
-              Sillares de piedra local de cantera aragonesa, vigas de abeto centenario restauradas a cepillo y textiles de lino belga lavado a la piedra. Una conjunción honesta y sobria que abraza al viajero.
+            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
+              Piedra local labrada a mano, vigas de abeto centenario restauradas a cepillo y textiles de lino orgánico belga. Una conjunción honesta y sobria que abraza al viajero.
             </p>
           </div>
         </div>
-        
+
         {/* Card 2: Aguas de Deshielo */}
-        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 relative overflow-hidden group hover:border-[#2C3627] hover:shadow-xl transition-all duration-500 rounded-xl">
-          {/* Decorative absolute background number */}
-          <span className="font-serif italic text-9xl text-[#E5B181]/10 absolute right-4 -top-2 select-none pointer-events-none group-hover:scale-110 group-hover:text-[#E5B181]/20 transition-all duration-500">II</span>
-          
-          <div className="w-12 h-12 rounded-xl bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-[#FDFCFB] transition-all duration-500 shadow-sm">
-            <Thermometer className="w-5.5 h-5.5" />
+        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 rounded-xl transition-all duration-500 hover:border-[#2C3627] hover:shadow-xl group">
+          <div className="w-11 h-11 rounded-lg bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+            <Thermometer className="w-5 h-5" />
           </div>
-          
-          <div className="space-y-2 relative z-10">
-            <h3 className="font-serif text-xl text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2.5">
-              Aguas de Deshielo
+          <div className="space-y-2">
+            <h3 className="font-serif text-lg text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2">
+              Bañeras y Aguas Termales
             </h3>
-            <p className="text-xs text-[#8C857B] leading-relaxed font-light">
-              Estudios provistos de tinas profundas labradas en madera de cedro aromático o bañeras esculpidas en piedra de río. Disfrute de baños purificadores nutridos por la pureza de las cumbres pirenaicas.
+            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
+              Estancias provistas de tinas profundas labradas en madera de cedro aromático o bañeras esculpidas en bloques de piedra. Disfrute de baños nutridos por manantiales locales.
             </p>
           </div>
         </div>
 
         {/* Card 3: Calidez Primitiva */}
-        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 relative overflow-hidden group hover:border-[#2C3627] hover:shadow-xl transition-all duration-500 rounded-xl">
-          {/* Decorative absolute background number */}
-          <span className="font-serif italic text-9xl text-[#E5B181]/10 absolute right-4 -top-2 select-none pointer-events-none group-hover:scale-110 group-hover:text-[#E5B181]/20 transition-all duration-500">III</span>
-          
-          <div className="w-12 h-12 rounded-xl bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-[#FDFCFB] transition-all duration-500 shadow-sm">
-            <Flame className="w-5.5 h-5.5" />
+        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 rounded-xl transition-all duration-500 hover:border-[#2C3627] hover:shadow-xl group">
+          <div className="w-11 h-11 rounded-lg bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+            <Flame className="w-5 h-5" />
           </div>
-          
-          <div className="space-y-2 relative z-10">
-            <h3 className="font-serif text-xl text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2.5">
-              Calidez Primitiva
+          <div className="space-y-2">
+            <h3 className="font-serif text-lg text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2">
+              Calidez de Leña
             </h3>
-            <p className="text-xs text-[#8C857B] leading-relaxed font-light">
-              Estufas de biomasa de última generación y chimeneas tradicionales suspendidas. Suministramos cestas de leña seca de abedul de nuestros bosques sostenibles para revivir la danza elemental del fuego.
+            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
+              Estufas de biomasa de última generación y chimeneas tradicionales suspendidas. Suministramos cestas de leña seca de abedul de nuestros bosques sostenibles.
             </p>
           </div>
         </div>
+      </section>
 
-      </div>
+      {/* 3. ROOMS CATALOG (GRID VIEW WITHOUT SIDEBAR FORM) */}
+      <section id="rooms-section" className="max-w-7xl mx-auto px-4 space-y-8 scroll-mt-20">
+        <div className="border-t border-[#E5E1D8] pt-14 flex flex-col md:flex-row justify-between items-baseline gap-4">
+          <div className="space-y-1.5">
+            <h2 className="font-serif text-3.5xl sm:text-4xl text-[#2C3627] font-light">Nuestras Estancias</h2>
+            <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-wider">
+              {searchFiltered ? 'Resultados de Búsqueda de Disponibilidad' : 'Colección de Cabañas y Suites de Montaña'}
+            </p>
+          </div>
+          {searchFiltered && (
+            <button 
+              onClick={() => setSearchFiltered(false)}
+              className="text-[#8C857B] hover:text-[#2D2D2D] font-mono text-[9px] uppercase tracking-widest underline cursor-pointer"
+            >
+              Ver todas las estancias
+            </button>
+          )}
+        </div>
 
-      {/* Culinary Section: Gastronomía de Altura */}
-      <div className="max-w-7xl mx-auto px-4 space-y-10">
+        {/* Booking Bar availability notifications */}
+        {isNoRoomsAvailable && (
+          <div className="p-5 bg-[#F5F3EF] border border-[#E5E1D8] text-xs text-[#8C857B] rounded-xl flex items-center gap-2.5 font-light leading-relaxed">
+            <AlertCircle className="w-5 h-5 text-[#E5B181] shrink-0" />
+            <p>
+              No hay estancias totalmente libres para las fechas de **{searchCheckIn} al {searchCheckOut}**. A continuación, te mostramos toda nuestra colección para que puedas explorar otras fechas disponibles.
+            </p>
+          </div>
+        )}
+
+        {/* Room Cards Grid Layout (3 Columns on Desktop, 2 on Tablet, 1 on Mobile) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-[#FDFCFB] border border-[#E5E1D8] p-5 rounded-xl animate-pulse space-y-5">
+                <div className="aspect-[16/10] bg-[#FAF9F6]/80 rounded-lg shadow-inner" />
+                <div className="space-y-3.5">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="h-6 bg-[#E5E1D8]/60 rounded-xs w-2/3" />
+                    <div className="h-4 bg-[#E5E1D8]/40 rounded-xs w-10" />
+                  </div>
+                  <div className="h-8 bg-[#E5E1D8]/45 rounded-xs w-24" />
+                  <div className="h-4 bg-[#E5E1D8]/30 rounded-xs w-full" />
+                </div>
+                <div className="pt-4 border-t border-[#E5E1D8] flex justify-between items-center">
+                  <div className="h-3 bg-[#E5E1D8]/30 rounded-xs w-16" />
+                  <div className="h-8 bg-[#E5E1D8]/50 rounded-xs w-28" />
+                </div>
+              </div>
+            ))
+          ) : (
+            roomsToDisplay.map((room, index) => {
+              const isLCP = index === 0;
+              const metrics = getRoomMetrics(room.id);
+              const isOccupiedDuringDates = bookings.some(booking => {
+                if (booking.roomId !== room.id) return false;
+                return booking.checkIn < searchCheckOut && booking.checkOut > searchCheckIn;
+              });
+              const isAvailable = !isOccupiedDuringDates;
+
+              return (
+                <div 
+                  key={room.id}
+                  className="bg-[#FDFCFB] border border-[#E5E1D8] p-5 flex flex-col justify-between rounded-xl hover:border-[#2C3627] hover:shadow-xl transition-all duration-500 group relative overflow-hidden"
+                >
+                  <div>
+                    {/* Room image */}
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner mb-5">
+                      <img 
+                        src={room.image} 
+                        alt={room.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+                        loading={isLCP ? "eager" : "lazy"}
+                        {...{ fetchpriority: isLCP ? "high" : "low" }}
+                        decoding={isLCP ? "sync" : "async"}
+                      />
+
+                      {/* Availability badge */}
+                      <div className="absolute top-3 right-3 z-10">
+                        {searchFiltered ? (
+                          <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1 ${
+                            isAvailable 
+                              ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
+                              : 'bg-red-50/90 text-red-700 border-red-200'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-[#2C3627]' : 'bg-red-600'}`} />
+                            {isAvailable ? 'Disponible' : 'Ocupada'}
+                          </span>
+                        ) : (
+                          <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1 ${
+                            room.status === 'available' 
+                              ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
+                              : 'bg-white/90 text-[#8C857B] border-[#D1CDC3]/20'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'available' ? 'bg-[#2C3627]' : 'bg-[#8C857B]'}`} />
+                            {room.status === 'available' ? 'Disponible' : 'Ocupada'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Category marker tag */}
+                      <div className="absolute bottom-3 left-3">
+                        <span className="px-2 py-0.5 text-[7px] font-mono uppercase tracking-widest text-white bg-[#2C3627]/90 rounded-sm">
+                          {room.type === 'cabin' ? '★ Cabaña de Madera' : room.type === 'suite' ? '★ Suite Refugio' : '★ Habitación Principal'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Room specifications */}
+                    <div className="space-y-3.5">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="font-serif text-lg text-[#2C3627] font-medium leading-snug group-hover:text-black transition-colors">
+                          {room.name}
+                        </h3>
+                        <span className="font-mono text-[9px] text-[#8C857B] bg-[#F5F3EF] px-2 py-0.5 rounded-xs shrink-0">
+                          Nº {room.number}
+                        </span>
+                      </div>
+
+                      {/* Metrics bar (Standard compliant) */}
+                      <div className="flex items-center gap-3.5 text-[9px] font-mono text-[#8C857B] uppercase border-y border-[#F5F3EF] py-2">
+                        <span>{metrics.icon} {metrics.size}</span>
+                        <span className="w-1 h-1 rounded-full bg-[#E5E1D8]" />
+                        <span>{metrics.bed}</span>
+                        <span className="w-1 h-1 rounded-full bg-[#E5E1D8]" />
+                        <span>Capacidad: {room.capacity} p.</span>
+                      </div>
+
+                      {/* Features list */}
+                      <ul className="text-[10.5px] text-[#8C857B] space-y-2 mt-1">
+                        {room.features.slice(0, 3).map((feat, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181] shrink-0" />
+                            <span className="font-sans font-light text-[#2D2D2D] truncate">{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Pricing and Book CTA Button */}
+                  <div className="pt-4 border-t border-[#E5E1D8] mt-6 flex justify-between items-center">
+                    <div>
+                      <span className="block font-mono text-[8px] text-[#8C857B] tracking-wider uppercase leading-none">PRECIO DESDE</span>
+                      <div className="flex items-baseline gap-0.5 font-mono font-semibold text-[#2C3627] mt-0.5">
+                        <span className="text-lg font-serif font-medium">{room.price}€</span>
+                        <span className="text-[9px] text-[#8C857B] font-light">/ noche</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => handleOpenBookingModal(room.id)}
+                      className="bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-semibold rounded-xs shadow-xs cursor-pointer h-[36px]"
+                    >
+                      Reservar
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </section>
+
+      {/* 4. INSTALACIONES Y SERVICIOS (Amenities section with icons) */}
+      <section id="amenities-section" className="max-w-7xl mx-auto px-4 space-y-12 scroll-mt-20">
+        <div className="border-t border-[#E5E1D8] pt-14 text-center space-y-1.5">
+          <h2 className="font-serif text-3.5xl sm:text-4xl text-[#2C3627] font-light">Experiencias y Servicios</h2>
+          <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-widest">El descanso en sintonía con el entorno silvestre</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center max-w-5xl mx-auto pt-4">
+          {/* Wifi */}
+          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
+              <Wifi className="w-5.5 h-5.5" />
+            </div>
+            <div>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Conexión Satelital</h4>
+              <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Starlink de alta velocidad en todo el refugio.</p>
+            </div>
+          </div>
+
+          {/* Desayuno */}
+          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
+              <Sparkles className="w-5.5 h-5.5" />
+            </div>
+            <div>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Desayuno Orgánico</h4>
+              <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Recetas locales y pan artesano horneado al amanecer.</p>
+            </div>
+          </div>
+
+          {/* Calefacción chimenea */}
+          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
+              <Flame className="w-5.5 h-5.5" />
+            </div>
+            <div>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Hogar de Leña</h4>
+              <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Chimeneas independientes con suministro de abedul.</p>
+            </div>
+          </div>
+
+          {/* Tinas de Cedro */}
+          <div className="space-y-3.5 p-4 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] transition-all duration-300">
+            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs">
+              <Thermometer className="w-5.5 h-5.5" />
+            </div>
+            <div>
+              <h4 className="font-serif text-sm font-medium text-[#2C3627]">Tinas Calientes</h4>
+              <p className="text-[10px] text-[#8C857B] mt-1 font-sans font-light">Baños de inmersión profunda con aceites esenciales.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Culinary section: La Cocina Silente */}
+      <section id="gastronomy-section" className="max-w-7xl mx-auto px-4 space-y-12 scroll-mt-20">
         <div className="border-t border-[#E5E1D8] pt-14 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1.5">
             <h2 className="font-serif text-3.5xl text-[#2C3627] font-light">La Cocina Silente</h2>
@@ -324,381 +625,265 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
               <div className="space-y-1.5">
                 <h4 className="font-serif text-lg text-[#2C3627] font-medium leading-snug">Panadería y Masa Madre</h4>
                 <p className="text-[11px] text-[#8C857B] font-light leading-relaxed">
-                  Panes rústicos horneados cada mañana en el refugio con harinas molidas a piedra y fermentación natural extendida de 24 horas.
+                  Panes rústicos horneados cada mañana en el refugio con harinas molidas a piedra y fermentación natural de 24 horas.
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Core Split: Reservation Engine & Room Showcase */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 px-4 max-w-7xl mx-auto">
-        
-        {/* LEFT: Room Showcase (7 cols on lg) */}
-        <div className="lg:col-span-7 space-y-8">
-          <div className="space-y-2 border-b border-[#E5E1D8] pb-5 flex justify-between items-baseline flex-wrap gap-2">
-            <div>
-              <h2 className="font-serif text-3.5xl text-[#2C3627] font-light">Colección de Estancias</h2>
-              <p className="font-mono text-[10px] text-[#8C857B] uppercase tracking-wider">Disponibilidad en Tiempo Real · Sello Boutique</p>
+      {/* 5. PRUEBA SOCIAL (TripAdvisor/Google reviews simulated widget) */}
+      <section id="social-proof-section" className="max-w-7xl mx-auto px-4 space-y-10 scroll-mt-20">
+        <div className="border-t border-[#E5E1D8] pt-14 text-center space-y-1.5">
+          <h2 className="font-serif text-3.5xl sm:text-4xl text-[#2C3627] font-light">La Opinión de Nuestros Huéspedes</h2>
+          <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-widest">Respaldo y opiniones reales de viajeros en el Pirineo</p>
+        </div>
+
+        {/* Stars summary banner */}
+        <div className="bg-[#FAF9F6] border border-[#E5E1D8] rounded-xl p-6 max-w-2xl mx-auto flex flex-col sm:flex-row justify-around items-center gap-6 text-center sm:text-left">
+          <div className="space-y-1">
+            <span className="font-mono text-[9px] tracking-wider text-[#8C857B] uppercase block">CALIFICACIÓN GENERAL</span>
+            <div className="flex items-center gap-2">
+              <span className="font-serif text-4xl font-semibold text-[#2C3627]">4.9</span>
+              <span className="text-xs text-[#8C857B] font-light font-mono">/ 5.0</span>
             </div>
-            <span className="font-mono text-[9px] text-[#2C3627] border border-[#2C3627]/20 uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full bg-[#FAF9F6]">
-              Estilo Exclusivo
-            </span>
+            <div className="flex gap-0.5 justify-center sm:justify-start">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="w-4 h-4 fill-[#E5B181] text-[#E5B181]" />
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            {loading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-[#FDFCFB] border border-[#E5E1D8] p-5 flex flex-col justify-between rounded-xl animate-pulse space-y-5">
-                  <div>
-                    <div className="aspect-[16/10] bg-[#FAF9F6]/80 rounded-lg mb-5 shadow-inner" />
-                    <div className="space-y-3.5">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="h-6 bg-[#E5E1D8]/60 rounded-xs w-2/3" />
-                        <div className="h-4 bg-[#E5E1D8]/40 rounded-xs w-10 shrink-0" />
-                      </div>
-                      <div className="h-8 bg-[#E5E1D8]/45 rounded-xs w-20" />
-                      <div className="h-4 bg-[#E5E1D8]/30 rounded-xs w-full mt-2.5" />
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-[#E5E1D8] mt-5 flex justify-between items-center">
-                    <div className="h-3 bg-[#E5E1D8]/30 rounded-xs w-16" />
-                    <div className="h-7 bg-[#E5E1D8]/50 rounded-xs w-24" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              rooms.map((room, index) => {
-                const isSelected = selectedRoomId === room.id;
-                const isLCP = index === 0;
-                return (
-                  <motion.div 
-                    layout
-                    whileHover={{ y: -3 }}
-                    transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-                    key={room.id}
-                    onClick={() => setSelectedRoomId(room.id)}
-                    className={`bg-[#FDFCFB] border p-5 flex flex-col justify-between transition-all duration-500 rounded-xl cursor-pointer group shadow-sm relative overflow-hidden ${
-                      isSelected 
-                        ? 'border-[#2C3627] ring-1 ring-[#2C3627] shadow-xl bg-[#FAF9F6]' 
-                        : 'border-[#E5E1D8] hover:border-[#2C3627]/60 hover:shadow-md'
-                    }`}
-                  >
-                    {/* Subtle design top border for selected state */}
-                    {isSelected && (
-                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#2C3627]" />
-                    )}
+          <div className="w-px h-12 bg-[#E5E1D8] hidden sm:block" />
 
-                    <div>
-                      {/* Image with zoom hover effect */}
-                      <div className="relative aspect-[16/10] overflow-hidden mb-5 bg-[#F5F3EF] rounded-lg shadow-inner">
-                        <img 
-                          src={room.image} 
-                          alt={room.name}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
-                          loading={isLCP ? "eager" : "lazy"}
-                          {...{ fetchpriority: isLCP ? "high" : "low" }}
-                          decoding={isLCP ? "sync" : "async"}
-                        />
-                        
-                        {/* Interactive pill for Room status */}
-                        <div className="absolute top-3 right-3 z-10 flex gap-1.5">
-                          <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1.5 ${
-                            room.status === 'available' 
-                              ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
-                              : 'bg-white/90 text-[#8C857B] border-[#D1CDC3]/20'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'available' ? 'bg-[#2C3627]' : 'bg-[#8C857B] animate-pulse'}`} />
-                            {room.status === 'available' ? 'Disponible' : 'Ocupada'}
-                          </span>
-                        </div>
-
-                        {/* Cabin/Suite marker tag */}
-                        <div className="absolute bottom-3 left-3">
-                          <span className="px-2.5 py-1 text-[7.5px] font-mono uppercase tracking-widest text-white bg-[#2C3627]/90 rounded-sm backdrop-blur-xs font-medium">
-                            {room.type === 'cabin' ? '★ Cabaña de Madera' : room.type === 'suite' ? '★ Suite Refugio' : '★ Habitación Principal'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3.5">
-                        <div className="flex justify-between items-start gap-2">
-                          <h3 className="font-serif text-xl text-[#2C3627] font-medium leading-snug group-hover:text-black transition-colors">{room.name}</h3>
-                          <span className="font-mono text-[9px] text-[#8C857B] bg-[#F5F3EF] px-2 py-0.5 rounded-sm shrink-0 font-medium">Nº {room.number}</span>
-                        </div>
-
-                        <div className="flex items-baseline gap-1 font-mono text-xs text-[#2C3627] font-semibold bg-[#2C3627]/5 px-2.5 py-1 rounded-sm w-max">
-                          <span className="text-base font-serif font-medium">{room.price}€</span>
-                          <span className="text-[10px] text-[#8C857B] font-light">/ noche</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-[10px] text-[#8C857B] font-mono border-t border-[#F5F3EF] pt-2.5">
-                          <Users className="w-4 h-4 text-[#E5B181]" />
-                          <span>Capacidad: {room.capacity} personas</span>
-                        </div>
-
-                        {/* Features list */}
-                        <ul className="pt-2.5 text-[11px] text-[#8C857B] space-y-2 border-t border-[#F5F3EF] mt-2.5">
-                          {room.features.map((feat, idx) => (
-                            <li key={idx} className="flex items-center gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181] shrink-0" />
-                              <span className="font-sans font-light text-[#2D2D2D] truncate">{feat}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Selection footer banner */}
-                    <div className="pt-4 border-t border-[#E5E1D8] mt-5 flex justify-between items-center">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-[#8C857B]">Pirineo de Huesca</span>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedRoomId(room.id);
-                        }}
-                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition-all rounded-sm cursor-pointer ${
-                          isSelected 
-                            ? 'bg-[#2C3627] text-[#FDFCFB] shadow-md font-semibold' 
-                            : 'bg-[#F5F3EF] text-[#8C857B] hover:bg-[#D1CDC3] hover:text-[#2D2D2D]'
-                        }`}
-                      >
-                        {isSelected ? '✓ Seleccionada' : 'Seleccionar'}
-                      </button>
-                    </div>
-
-                  </motion.div>
-                );
-              })
-            )}
+          <div className="space-y-1">
+            <span className="font-mono text-[9px] tracking-wider text-[#8C857B] uppercase block font-semibold">RECOMENDADO EN PLATAFORMAS</span>
+            <div className="flex items-center gap-4 pt-1 font-mono text-[10px] text-[#2C3627] font-semibold">
+              <span className="bg-[#E5B181]/15 px-2.5 py-1 rounded-sm border border-[#E5B181]/30">Booking.com · 9.8</span>
+              <span className="bg-[#2C3627]/5 px-2.5 py-1 rounded-sm border border-[#2C3627]/10">TripAdvisor · 5/5</span>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT: Booking Engine & Folio Quote (5 cols on lg) */}
-        <div className="lg:col-span-5 space-y-8">
-          <div id="booking-engine-card" className="bg-[#FAF9F6] border-double-fine p-7 space-y-6 rounded-xl shadow-lg relative overflow-hidden">
-            {/* Subtle paper grain texture simulation */}
-            <div className="absolute inset-0 bg-repeat bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMDAyIi8+Cjwvc3ZnPg==')] pointer-events-none" />
-
-            <div className="space-y-1.5 border-b border-[#D1CDC3] pb-4 relative z-10">
-              <h2 className="font-serif text-2.5xl text-[#2C3627] font-medium flex items-center gap-2.5">
-                <Calendar className="w-5.5 h-5.5 text-[#E5B181]" />
-                Reserva de Estancia
-              </h2>
-              <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-widest leading-none">Presupuesto Estimado y Registro</p>
+        {/* 3 Review Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+          {/* Review 1 */}
+          <div className="bg-[#FDFCFB] border border-[#E5E1D8] p-6.5 rounded-xl space-y-4 flex flex-col justify-between hover:border-[#2C3627] transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-[#E5B181] text-[#E5B181]" />
+                ))}
+              </div>
+              <p className="text-xs text-[#2D2D2D] leading-relaxed font-light italic font-serif">
+                "Un lugar mágico para reconectar. Las tinas de cedro caliente bajo las estrellas de los Pirineos son una experiencia espiritual. Las camas y el lino son sumamente cómodos."
+              </p>
             </div>
+            <div className="border-t border-[#F5F3EF] pt-3 flex justify-between items-center text-[10px] font-mono text-[#8C857B]">
+              <span className="font-medium text-[#2C3627]">Clara Mendoza</span>
+              <span>Julio 2026</span>
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmitBooking} className="space-y-5 relative z-10">
-              
-              {/* Confirmed Selection Box */}
-              {loading ? (
-                <div className="p-4 bg-[#FDFCFB] border border-[#D1CDC3] rounded-lg text-xs space-y-2 shadow-sm animate-pulse">
-                  <div className="h-3 bg-[#E5E1D8]/60 rounded-xs w-1/3" />
-                  <div className="h-5 bg-[#E5E1D8]/45 rounded-xs w-2/3" />
-                  <div className="flex justify-between pt-1">
-                    <div className="h-3 bg-[#E5E1D8]/35 rounded-xs w-1/4" />
-                    <div className="h-3.5 bg-[#E5E1D8]/50 rounded-xs w-16" />
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-[#FDFCFB] border border-[#D1CDC3] rounded-lg text-xs space-y-1.5 shadow-sm relative overflow-hidden group">
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#2C3627]" />
-                  <span className="font-mono text-[8px] uppercase tracking-widest text-[#8C857B] block font-semibold">ESTANCIA SELECCIONADA</span>
-                  <p className="font-serif font-medium text-[#2C3627] text-lg">{selectedRoom?.name}</p>
-                  <div className="flex justify-between items-baseline pt-1">
-                    <p className="font-mono text-[10px] text-[#8C857B]">Refugio de Alta Montaña</p>
-                    <p className="font-mono text-xs font-semibold text-[#2C3627]">{selectedRoom?.price}€ <span className="font-light text-[9px] text-[#8C857B]">/ noche</span></p>
-                  </div>
-                </div>
-              )}
+          {/* Review 2 */}
+          <div className="bg-[#FDFCFB] border border-[#E5E1D8] p-6.5 rounded-xl space-y-4 flex flex-col justify-between hover:border-[#2C3627] transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-[#E5B181] text-[#E5B181]" />
+                ))}
+              </div>
+              <p className="text-xs text-[#2D2D2D] leading-relaxed font-light italic font-serif">
+                "Hacía años que no dormía en un silencio tan absoluto. La estufa de leña aporta una calidez incomparable y el desayuno de masa madre con quesos de Ansó es una locura."
+              </p>
+            </div>
+            <div className="border-t border-[#F5F3EF] pt-3 flex justify-between items-center text-[10px] font-mono text-[#8C857B]">
+              <span className="font-medium text-[#2C3627]">Andrés Varela</span>
+              <span>Junio 2026</span>
+            </div>
+          </div>
 
-              {/* Date Inputs */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-medium">Fecha de Entrada</label>
-                  <input 
-                    type="date" 
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-[#FDFCFB] border border-[#D1CDC3] text-[#2D2D2D] focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 rounded-md font-mono transition-all"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="block font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-medium">Fecha de Salida</label>
-                  <input 
-                    type="date" 
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-[#FDFCFB] border border-[#D1CDC3] text-[#2D2D2D] focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 rounded-md font-mono transition-all"
-                  />
-                </div>
+          {/* Review 3 */}
+          <div className="bg-[#FDFCFB] border border-[#E5E1D8] p-6.5 rounded-xl space-y-4 flex flex-col justify-between hover:border-[#2C3627] transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-[#E5B181] text-[#E5B181]" />
+                ))}
+              </div>
+              <p className="text-xs text-[#2D2D2D] leading-relaxed font-light italic font-serif">
+                "La atención al cliente, el diseño minimalista de inspiración wabi-sabi y el entorno pirenaico forman un refugio perfecto. Las facturas y la reserva online fueron inmediatas."
+              </p>
+            </div>
+            <div className="border-t border-[#F5F3EF] pt-3 flex justify-between items-center text-[10px] font-mono text-[#8C857B]">
+              <span className="font-medium text-[#2C3627]">Helena Rostova</span>
+              <span>Mayo 2026</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. BOOKING DETAILS MODAL (POPUP ON CTA CLICK) */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            
+            {/* Backdrop cover with blur */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-[#1C2319]/60 backdrop-blur-xs cursor-pointer"
+            />
+
+            {/* Modal Body Container */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+              className="relative bg-[#FAF9F6] border border-[#E5E1D8] w-full max-w-lg rounded-2xl shadow-2xl p-6 sm:p-8 z-10 overflow-y-auto max-h-[90vh] font-sans text-[#2D2D2D]"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-4 right-4 text-[#8C857B] hover:text-[#2C3627] cursor-pointer p-1 rounded-full hover:bg-[#F5F3EF] transition-all"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Title Header */}
+              <div className="space-y-1.5 border-b border-[#D1CDC3] pb-4 mb-5">
+                <h3 className="font-serif text-xl sm:text-2xl text-[#2C3627] font-semibold flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-[#E5B181]" />
+                  Reserva tu Estancia
+                </h3>
+                <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-widest leading-none">Registro de Folio de Huésped</p>
               </div>
 
-              {/* Guest Identity */}
-              <div className="space-y-1.5">
-                <label className="block font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-medium">Nombre Completo del Huésped</label>
-                <input 
-                  type="text" 
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  placeholder="ej. Alejandro Sanz"
-                  className="w-full px-3 py-2.5 text-xs bg-[#FDFCFB] border border-[#D1CDC3] text-[#2D2D2D] focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 rounded-md transition-all placeholder-[#8C857B]/50"
-                />
-              </div>
+              {/* Booking success overlay view */}
+              {bookingSuccess ? (
+                <div className="space-y-5 py-2 text-center">
+                  <div className="w-12 h-12 bg-[#2C3627]/10 text-[#2C3627] rounded-full flex items-center justify-center mx-auto">
+                    <Sparkles className="w-6 h-6 text-[#E5B181]" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-serif text-lg font-medium text-[#2C3627]">¡Reserva Completada!</h4>
+                    <p className="text-xs text-[#8C857B] font-light leading-relaxed">
+                      Tu reserva en **{modalRoom?.name}** del **{searchCheckIn} al {searchCheckOut}** ha sido registrada con éxito en Firestore.
+                    </p>
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="block font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-medium">Correo Electrónico de Contacto</label>
-                <input 
-                  type="email" 
-                  value={guestEmail}
-                  onChange={(e) => setGuestEmail(e.target.value)}
-                  placeholder="ej. sanz@gmail.com"
-                  className="w-full px-3 py-2.5 text-xs bg-[#FDFCFB] border border-[#D1CDC3] text-[#2D2D2D] focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 rounded-md transition-all placeholder-[#8C857B]/50"
-                />
-              </div>
-
-              {/* Vintage Tear-off Divider Line */}
-              <div className="relative py-2.5 select-none">
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-dashed border-[#D1CDC3]" />
-                <span className="relative mx-auto block w-max bg-[#FAF9F6] px-3.5 font-mono text-[8px] text-[#8C857B] tracking-[0.2em] uppercase font-bold">Desglose de Tarifas</span>
-              </div>
-
-              {/* Invoice breakdown styled like traditional receipt folio */}
-              {loading ? (
-                <div className="space-y-3.5 text-xs font-mono text-[#8C857B] bg-[#FDFCFB] border border-[#E5E1D8] p-4.5 rounded-lg shadow-sm animate-pulse">
-                  <div className="flex justify-between">
-                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-1/2" />
-                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-12" />
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-1/3" />
-                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-10" />
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-1/3" />
-                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-10" />
-                  </div>
-                  <div className="flex justify-between pb-2">
-                    <div className="h-3 bg-[#E5E1D8]/45 rounded-xs w-2/5" />
-                    <div className="h-3 bg-[#E5E1D8]/50 rounded-xs w-10" />
-                  </div>
-                  <div className="flex justify-between border-t border-[#E5E1D8]/60 pt-3 mt-2.5">
-                    <div className="h-4 bg-[#E5E1D8]/55 rounded-xs w-1/3" />
-                    <div className="h-5 bg-[#E5E1D8]/60 rounded-xs w-16" />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2 text-xs font-mono text-[#8C857B] bg-[#FDFCFB] border border-[#E5E1D8] p-4.5 rounded-lg shadow-sm relative overflow-hidden">
-                  <div className="flex justify-between relative z-10">
-                    <span>{selectedRoom?.name} ({nights} n.)</span>
-                    <span className="text-[#2D2D2D]">{roomPriceTotal.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between relative z-10">
-                    <span>Tasa Ecológica Pirenaica</span>
-                    <span className="text-[#2D2D2D]">{ecoTax.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between relative z-10">
-                    <span>Acondicionamiento y Lino</span>
-                    <span className="text-[#2D2D2D]">{cleaningFee.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between pb-2 border-b border-[#FAF9F6]/10 relative z-10">
-                    <span>IVA Turístico Aplicado (10%)</span>
-                    <span className="text-[#2D2D2D]">{iva.toFixed(2)}€</span>
-                  </div>
+                  {lastBooking && (
+                    <button
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        onOpenInvoice(lastBooking, modalRoom!);
+                      }}
+                      className="w-full py-3 bg-[#2C3627] hover:bg-[#2C3627]/90 text-white font-mono text-[10px] uppercase tracking-widest rounded-md flex items-center justify-center gap-2 cursor-pointer shadow-sm font-semibold transition-all"
+                    >
+                      <FileText className="w-4.5 h-4.5" />
+                      Ver Factura & Descargar PDF
+                    </button>
+                  )}
                   
-                  {/* Total sum with high prominence */}
-                  <div className="flex justify-between font-bold text-sm text-[#2D2D2D] border-t border-[#E5E1D8]/60 pt-3 mt-2.5 relative z-10">
-                    <span className="font-sans font-medium text-xs text-[#2C3627]">Total de la Estancia:</span>
-                    <span className="text-lg text-[#2C3627] font-mono font-bold">{total.toFixed(2)}€</span>
-                  </div>
+                  <button 
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-full py-2.5 bg-white border border-[#D1CDC3] text-[#8C857B] hover:text-[#2D2D2D] transition-all font-mono text-[10px] uppercase tracking-widest rounded-md cursor-pointer"
+                  >
+                    Cerrar Ventana
+                  </button>
                 </div>
-              )}
+              ) : (
+                <form onSubmit={handleSubmitBooking} className="space-y-5">
+                  {/* Selected Room overview pill */}
+                  <div className="p-4 bg-white border border-[#E5E1D8] rounded-lg text-xs space-y-1 shadow-2xs relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#2C3627]" />
+                    <span className="font-mono text-[8px] uppercase tracking-widest text-[#8C857B] block font-semibold">ESTANCIA</span>
+                    <p className="font-serif font-medium text-[#2C3627] text-base">{modalRoom?.name}</p>
+                    <p className="font-mono text-[9px] text-[#8C857B]">
+                      Fechas: {searchCheckIn} al {searchCheckOut} · ({nights} noches)
+                    </p>
+                  </div>
 
-              {/* Status responses with transitions */}
-              <AnimatePresence mode="wait">
-                {bookingError && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="flex items-center gap-2 p-3.5 text-xs bg-red-50 text-red-700 border border-red-100 rounded-lg"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <p className="font-sans">{bookingError}</p>
-                  </motion.div>
-                )}
-
-                {bookingSuccess && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="space-y-3.5 p-5 bg-[#F5F3EF] text-[#2C3627] border border-[#E5E1D8] rounded-lg text-left shadow-md"
-                  >
-                    <div className="flex items-start gap-2.5 text-xs">
-                      <Sparkles className="w-4 h-4 shrink-0 text-[#E5B181] mt-0.5 animate-pulse" />
-                      <div>
-                        <p className="font-semibold font-serif text-sm">¡Reserva Registrada!</p>
-                        <p className="font-sans font-light mt-1 text-[#8C857B] leading-relaxed">
-                          La reserva de <strong className="font-medium text-[#2C3627]">{selectedRoom?.name}</strong> se ha completado correctamente.
-                        </p>
-                      </div>
+                  {/* Form inputs */}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="block font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-semibold">Nombre Completo del Huésped</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        placeholder="ej. Juan Pérez"
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#D1CDC3] text-[#2D2D2D] focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 rounded-md transition-all placeholder-[#8C857B]/40"
+                      />
                     </div>
 
-                    {lastBooking && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenInvoice(lastBooking, selectedRoom!)}
-                        className="w-full py-2.5 bg-[#2C3627] hover:bg-[#2C3627]/90 text-white transition-all font-mono text-[10px] uppercase tracking-widest rounded-md flex items-center justify-center gap-2 cursor-pointer shadow-sm font-semibold hover:shadow-md"
-                      >
-                        <FileText className="w-4 h-4" />
-                        Ver e Imprimir Factura
-                      </button>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <div className="space-y-1">
+                      <label className="block font-mono text-[9px] uppercase tracking-wider text-[#8C857B] font-semibold">Correo Electrónico</label>
+                      <input 
+                        type="email" 
+                        required
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        placeholder="ej. juan@gmail.com"
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#D1CDC3] text-[#2D2D2D] focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 rounded-md transition-all placeholder-[#8C857B]/40"
+                      />
+                    </div>
+                  </div>
 
-              {/* Submission CTA */}
-              {!bookingSuccess && (
-                <button 
-                  type="submit"
-                  className="w-full py-3.5 bg-[#2C3627] hover:bg-[#2C3627]/90 text-[#FDFCFB] transition-all font-mono text-xs uppercase tracking-[0.18em] rounded-md flex items-center justify-center gap-2 shadow-md hover:shadow-xl cursor-pointer font-semibold hover:translate-y-[-1px]"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Confirmar Reserva
-                </button>
-              )}
+                  {/* Pricing receipt detail */}
+                  <div className="space-y-2 text-xs font-mono text-[#8C857B] bg-white border border-[#E5E1D8] p-4 rounded-lg shadow-3xs">
+                    <div className="flex justify-between">
+                      <span>Tarifa base ({nights} noches)</span>
+                      <span className="text-[#2D2D2D]">{roomPriceTotal.toFixed(2)}€</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tasa Ecológica</span>
+                      <span className="text-[#2D2D2D]">{ecoTax.toFixed(2)}€</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Acondicionamiento y Lino</span>
+                      <span className="text-[#2D2D2D]">{cleaningFee.toFixed(2)}€</span>
+                    </div>
+                    <div className="flex justify-between border-b border-[#FAF9F6] pb-2">
+                      <span>IVA Turístico (10%)</span>
+                      <span className="text-[#2D2D2D]">{iva.toFixed(2)}€</span>
+                    </div>
+                    
+                    <div className="flex justify-between font-bold text-sm text-[#2C3627] border-t border-[#E5E1D8]/60 pt-2.5 mt-2">
+                      <span className="font-sans font-medium text-xs">Total:</span>
+                      <span className="text-base font-bold">{total.toFixed(2)}€</span>
+                    </div>
+                  </div>
 
-              {bookingSuccess && (
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setBookingSuccess('');
-                    setLastBookedEmail('');
-                  }}
-                  className="w-full py-2.5 bg-white border border-[#D1CDC3] text-[#8C857B] hover:text-[#2D2D2D] transition-all font-mono text-xs uppercase tracking-wider rounded-md flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  Nueva Simulación de Reserva
-                </button>
+                  {/* Error Notification */}
+                  {bookingError && (
+                    <div className="flex items-center gap-2 p-3 text-xs bg-red-50 text-red-700 border border-red-100 rounded-lg">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <p className="font-sans">{bookingError}</p>
+                    </div>
+                  )}
+
+                  {/* Submit button */}
+                  <button 
+                    type="submit"
+                    className="w-full py-3 bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white font-mono text-xs uppercase tracking-widest rounded-md flex items-center justify-center gap-2 shadow-md cursor-pointer font-semibold transition-all duration-300"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Confirmar Reserva
+                  </button>
+                </form>
               )}
-            </form>
+            </motion.div>
           </div>
-        </div>
-      </div>
+        )}
+      </AnimatePresence>
 
-      {/* Elegant minimalist footer */}
-      <div className="border-t border-[#E5E1D8] pt-14 text-center space-y-4 max-w-5xl mx-auto px-4 select-none">
-        <h2 className="font-serif italic text-xl text-[#2C3627] font-light">"La montaña responde con su propio silencio."</h2>
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-2.5 font-mono text-[10px] text-[#8C857B] uppercase tracking-[0.15em] pt-2">
-          <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-[#2C3627]" /> +34 974 330 112</span>
-          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#2C3627]" /> Valle de Ansó, Pirineos de Huesca</span>
-          <span>Borda Silente S.A. © 2026</span>
-        </div>
-      </div>
     </div>
   );
 }
-
