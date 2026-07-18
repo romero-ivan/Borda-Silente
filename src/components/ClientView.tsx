@@ -6,10 +6,128 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, Users, Shield, Compass, Sparkles, AlertCircle, FileText, 
-  Mail, Phone, MapPin, Flame, Thermometer, Wifi, Star, ArrowRight, X, Clock, Map
+  Mail, Phone, MapPin, Flame, Thermometer, Wifi, Star, ArrowRight, X, Clock, Map,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Room, Booking, BookingPlatform } from '../types.js';
+
+const ROOM_IMAGES_MAP: Record<number, string[]> = {
+  101: [
+    "/room_101_1.jpg",
+    "/room_101_2.jpg",
+    "/room_101_3.jpg"
+  ],
+  102: [
+    "https://images.unsplash.com/photo-1542718610-a1d656d1884c?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=70"
+  ],
+  103: [
+    "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=70"
+  ],
+  201: [
+    "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=70"
+  ],
+  202: [
+    "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=70"
+  ],
+  301: [
+    "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=600&q=70",
+    "https://images.unsplash.com/photo-1498503182468-3b51cbb6cb24?auto=format&fit=crop&w=600&q=70"
+  ]
+};
+
+interface ImageCarouselProps {
+  images: string[];
+  alt: string;
+  isOccupied?: boolean;
+  occupiedText?: string;
+  isLCP?: boolean;
+}
+
+function ImageCarousel({ images, alt, isOccupied, occupiedText, isLCP }: ImageCarouselProps) {
+  const [index, setIndex] = useState(0);
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  return (
+    <div className="relative aspect-[16/10] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner group/carousel">
+      <img 
+        src={images[index]} 
+        alt={`${alt} - Imagen ${index + 1}`}
+        referrerPolicy="no-referrer"
+        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+        loading={isLCP ? "eager" : "lazy"}
+        {...{ fetchpriority: isLCP ? "high" : "low" }}
+        decoding={isLCP ? "sync" : "async"}
+      />
+
+      {/* Prev/Next buttons (Only show if multiple images exist) */}
+      {images.length > 1 && (
+        <>
+          <button 
+            type="button"
+            onClick={handlePrev}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7.5 h-7.5 rounded-full bg-[#121411]/60 text-white flex items-center justify-center hover:bg-[#121411]/80 hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer select-none"
+            aria-label="Imagen anterior"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button 
+            type="button"
+            onClick={handleNext}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7.5 h-7.5 rounded-full bg-[#121411]/60 text-white flex items-center justify-center hover:bg-[#121411]/80 hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer select-none"
+            aria-label="Siguiente imagen"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </>
+      )}
+
+      {/* Dots indicator */}
+      {images.length > 1 && (
+        <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+          {images.map((_, idx) => (
+            <span 
+              key={idx}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${idx === index ? 'bg-white scale-125' : 'bg-white/40'}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Occupied full glass overlay */}
+      {isOccupied && (
+        <div className="absolute inset-0 bg-[#121411]/75 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center z-10 select-none pointer-events-none">
+          <span className="bg-red-900/90 text-white border border-red-500/30 font-mono text-[9px] uppercase tracking-widest px-3 py-1 rounded-sm shadow-md font-bold mb-2">
+            No Disponible
+          </span>
+          <p className="text-white font-serif text-xs sm:text-sm font-medium leading-relaxed max-w-[220px]">
+            {occupiedText || 'Ocupada para estas fechas'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ClientViewProps {
   rooms: Room[];
@@ -80,9 +198,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
 
   const nights = calculateNights();
   const roomPriceTotal = modalRoom ? modalRoom.price * nights : 0;
-  const ecoTax = 1.5 * nights;
-  const cleaningFee = 25.0;
-  const subtotal = roomPriceTotal + ecoTax + cleaningFee;
+  const subtotal = roomPriceTotal;
   const iva = subtotal * 0.1;
   const total = subtotal + iva;
 
@@ -389,55 +505,54 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
             roomsToDisplay.map((room, index) => {
               const isLCP = index === 0;
               const metrics = getRoomMetrics(room.id);
+              const roomImages = ROOM_IMAGES_MAP[room.id] || [room.image];
               const isOccupiedDuringDates = bookings.some(booking => {
                 if (booking.roomId !== room.id) return false;
                 return booking.checkIn < searchCheckOut && booking.checkOut > searchCheckIn;
               });
               const isAvailable = !isOccupiedDuringDates;
 
+              // Calculate total for this specific room during dates
+              const specificRoomSubtotal = room.price * nights;
+              const specificRoomIva = specificRoomSubtotal * 0.1;
+              const specificRoomTotal = specificRoomSubtotal + specificRoomIva;
+
               return (
                 <div 
                   key={room.id}
-                  className="bg-[#FDFCFB] border border-[#E5E1D8] p-5 flex flex-col justify-between rounded-xl hover:border-[#2C3627] hover:shadow-xl transition-all duration-500 group relative overflow-hidden"
+                  className={`bg-[#FDFCFB] border border-[#E5E1D8] p-5 flex flex-col justify-between rounded-xl transition-all duration-500 group relative overflow-hidden ${
+                    searchFiltered && !isAvailable 
+                      ? 'opacity-50 grayscale-15 scale-[0.98]' 
+                      : 'hover:border-[#2C3627] hover:shadow-xl'
+                  }`}
                 >
                   <div>
-                    {/* Room image */}
-                    <div className="relative aspect-[16/10] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner mb-5">
-                      <img 
-                        src={room.image} 
-                        alt={room.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
-                        loading={isLCP ? "eager" : "lazy"}
-                        {...{ fetchpriority: isLCP ? "high" : "low" }}
-                        decoding={isLCP ? "sync" : "async"}
+                    {/* Room image carousel */}
+                    <div className="relative mb-5">
+                      <ImageCarousel 
+                        images={roomImages} 
+                        alt={room.name} 
+                        isOccupied={searchFiltered && !isAvailable}
+                        occupiedText={`Ocupada del ${searchCheckIn} al ${searchCheckOut}`}
+                        isLCP={isLCP}
                       />
 
-                      {/* Availability badge */}
-                      <div className="absolute top-3 right-3 z-10">
-                        {searchFiltered ? (
+                      {/* Availability badge (Only show in search results) */}
+                      {searchFiltered && (
+                        <div className="absolute top-3 right-3 z-30">
                           <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1 ${
                             isAvailable 
                               ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
-                              : 'bg-red-50/90 text-red-700 border-red-200'
+                              : 'bg-red-950/90 text-red-200 border-red-500/20'
                           }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-[#2C3627]' : 'bg-red-600'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-[#2C3627]' : 'bg-red-500'}`} />
                             {isAvailable ? 'Disponible' : 'Ocupada'}
                           </span>
-                        ) : (
-                          <span className={`px-2.5 py-1 text-[8px] font-mono uppercase tracking-wider rounded-full border backdrop-blur-md font-semibold flex items-center gap-1 ${
-                            room.status === 'available' 
-                              ? 'bg-white/95 text-[#2C3627] border-[#2C3627]/20 shadow-xs' 
-                              : 'bg-white/90 text-[#8C857B] border-[#D1CDC3]/20'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${room.status === 'available' ? 'bg-[#2C3627]' : 'bg-[#8C857B]'}`} />
-                            {room.status === 'available' ? 'Disponible' : 'Ocupada'}
-                          </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       {/* Category marker tag */}
-                      <div className="absolute bottom-3 left-3">
+                      <div className="absolute bottom-3.5 left-3.5 z-20">
                         <span className="px-2 py-0.5 text-[7px] font-mono uppercase tracking-widest text-white bg-[#2C3627]/90 rounded-sm">
                           {room.type === 'cabin' ? '★ Cabaña de Madera' : room.type === 'suite' ? '★ Suite Refugio' : '★ Habitación Principal'}
                         </span>
@@ -476,23 +591,69 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                     </div>
                   </div>
 
-                  {/* Pricing and Book CTA Button */}
-                  <div className="pt-4 border-t border-[#E5E1D8] mt-6 flex justify-between items-center">
-                    <div>
-                      <span className="block font-mono text-[8px] text-[#8C857B] tracking-wider uppercase leading-none">PRECIO DESDE</span>
-                      <div className="flex items-baseline gap-0.5 font-mono font-semibold text-[#2C3627] mt-0.5">
-                        <span className="text-lg font-serif font-medium">{room.price}€</span>
-                        <span className="text-[9px] text-[#8C857B] font-light">/ noche</span>
+                  {/* Pricing and Book CTA Button (Conditioned on Search Filter state) */}
+                  {searchFiltered ? (
+                    <div className="pt-4 border-t border-[#E5E1D8] mt-6 flex justify-between items-center">
+                      <div>
+                        {isAvailable ? (
+                          <>
+                            <span className="block font-mono text-[8px] text-[#8C857B] tracking-wider uppercase leading-none">PRECIO TOTAL ({nights} n.)</span>
+                            <div className="flex items-baseline gap-0.5 font-mono font-semibold text-[#2C3627] mt-0.5">
+                              <span className="text-lg font-serif font-medium">{specificRoomTotal.toFixed(0)}€</span>
+                              <span className="text-[9px] text-[#8C857B] font-light">({room.price}€/n.)</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="block font-mono text-[8px] text-red-500/80 tracking-wider uppercase leading-none">ESTADO</span>
+                            <div className="font-mono text-xs font-semibold text-red-700 mt-1">
+                              No disponible
+                            </div>
+                          </>
+                        )}
                       </div>
-                    </div>
 
-                    <button 
-                      onClick={() => handleOpenBookingModal(room.id)}
-                      className="bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-semibold rounded-xs shadow-xs cursor-pointer h-[36px]"
-                    >
-                      Reservar
-                    </button>
-                  </div>
+                      <button 
+                        onClick={() => isAvailable && handleOpenBookingModal(room.id)}
+                        disabled={!isAvailable}
+                        className={`px-4.5 py-2 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-bold rounded-xs h-[36px] ${
+                          isAvailable 
+                            ? 'bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white cursor-pointer shadow-xs' 
+                            : 'bg-[#D1CDC3] text-[#8C857B] cursor-not-allowed border border-[#D1CDC3]'
+                        }`}
+                      >
+                        {isAvailable ? 'Reservar' : 'Ocupada'}
+                      </button>
+                    </div>
+                  ) : (
+                    /* Homepage Inspirational mode: NO price, NO booking button. Show helper text link instead */
+                    <div className="pt-4 border-t border-[#E5E1D8]/60 mt-6 text-center">
+                      <a 
+                        href="#booking-engine"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const engine = document.getElementById('booking-engine');
+                          if (engine) {
+                            engine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            engine.classList.add('ring-4', 'ring-[#E5B181]/65');
+                            setTimeout(() => {
+                              engine.classList.remove('ring-4', 'ring-[#E5B181]/65');
+                            }, 1800);
+                            const checkInInput = document.getElementById('search-check-in');
+                            if (checkInInput) {
+                              setTimeout(() => {
+                                (checkInInput as HTMLInputElement).focus();
+                              }, 500);
+                            }
+                          }
+                        }}
+                        className="text-[#2C3627]/85 hover:text-[#E5B181] font-mono text-[9px] uppercase tracking-widest transition-colors duration-300 flex items-center justify-center gap-1 font-semibold py-1.5 hover:underline"
+                      >
+                        <Calendar className="w-3.5 h-3.5 text-[#E5B181]" />
+                        Buscar disponibilidad y tarifas
+                      </a>
+                    </div>
+                  )}
                 </div>
               );
             })
@@ -842,14 +1003,6 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                     <div className="flex justify-between">
                       <span>Tarifa base ({nights} noches)</span>
                       <span className="text-[#2D2D2D]">{roomPriceTotal.toFixed(2)}€</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tasa Ecológica</span>
-                      <span className="text-[#2D2D2D]">{ecoTax.toFixed(2)}€</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Acondicionamiento y Lino</span>
-                      <span className="text-[#2D2D2D]">{cleaningFee.toFixed(2)}€</span>
                     </div>
                     <div className="flex justify-between border-b border-[#FAF9F6] pb-2">
                       <span>IVA Turístico (10%)</span>
