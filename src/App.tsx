@@ -382,19 +382,21 @@ export default function App() {
       
       {/* 2. Top Navigation Bar (Sticky & Standard Compliant) */}
       {currentRole === 'consumer' ? (
-        <header className="fixed top-0 left-0 right-0 z-50 px-6 py-3.5 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB]/95 backdrop-blur-md print:hidden">
-          <div className="flex items-center gap-3">
+        <header className="fixed top-0 left-0 right-0 z-50 px-6 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB]/95 backdrop-blur-md print:hidden h-16">
+          
+          {/* Left Block: Brand Identity (Constrained width to balance layout) */}
+          <div className="flex items-center gap-3 w-1/3 min-w-[200px]">
             <div className="w-9 h-9 border border-[#2C3627] flex items-center justify-center bg-transparent transition-all">
               <Compass className="w-5 h-5 text-[#2C3627]" />
             </div>
             <div>
-              <span className="font-serif text-base font-bold tracking-widest uppercase text-[#2C3627] block">Borda Silente</span>
-              <span className="font-mono text-[8px] uppercase text-[#2C3627]/80 block tracking-[0.2em] mt-0.5 font-medium">Refugio de Montaña</span>
+              <span className="font-serif text-base font-bold tracking-wider uppercase text-[#2C3627] block leading-tight">Borda Silente</span>
+              <span className="font-sans text-[9px] uppercase text-[#2C3627]/70 block tracking-[0.1em] mt-0.5 font-semibold leading-none">Refugio de Montaña</span>
             </div>
           </div>
 
-          {/* Central links for navigation (Desktop only, clean and minimal with high contrast) */}
-          <nav className="hidden md:flex items-center gap-8 font-mono text-[10px] uppercase tracking-widest text-[#2C3627] font-bold">
+          {/* Central Block: Navigation Links (Geometrically Centered via absolute positioning) */}
+          <nav className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-8 font-sans text-[13px] text-[#2C3627] font-semibold tracking-wide">
             <a href="#rooms-section" className="hover:text-[#E5B181] transition-colors">Habitaciones</a>
             <a href="#amenities-section" className="hover:text-[#E5B181] transition-colors">Servicios</a>
             <a href="#gastronomy-section" className="hover:text-[#E5B181] transition-colors">Gastronomía</a>
@@ -402,9 +404,9 @@ export default function App() {
             <a href="#contact-section" className="hover:text-[#E5B181] transition-colors">Ubicación</a>
           </nav>
 
-          {/* Right Side: Localization & CTA Book Now Button */}
-          <div className="flex items-center gap-4">
-            <span className="hidden sm:inline font-mono text-[9px] text-[#2C3627] uppercase tracking-wider bg-[#F5F3EF] px-2.5 py-1.5 border border-[#2C3627]/25 font-bold">
+          {/* Right Block: Localization & CTA Button (Constrained width to align layouts) */}
+          <div className="flex items-center justify-end gap-5 w-1/3 min-w-[200px]">
+            <span className="hidden sm:inline font-sans text-xs text-[#2C3627]/75 hover:text-[#2C3627] cursor-pointer transition-colors font-bold tracking-wider">
               ES | EUR
             </span>
             <a 
@@ -426,7 +428,7 @@ export default function App() {
                   }
                 }
               }}
-              className="bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-semibold rounded-xs shadow-xs"
+              className="bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-4.5 py-2 font-sans text-xs uppercase tracking-wider transition-all duration-300 font-bold rounded-md shadow-xs hover:shadow-md"
             >
               Reservar Ahora
             </a>
