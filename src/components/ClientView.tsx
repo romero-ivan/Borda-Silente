@@ -449,53 +449,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
         </div>
       </section>
 
-      {/* 2. PHILOSOPHY & CONCEPT (WITHOUT ROMAN NUMERALS I, II, III) */}
-      <section className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 pt-10 sm:pt-14">
-        {/* Card 1: Materiales Nobles */}
-        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 rounded-xl transition-all duration-500 hover:border-[#2C3627] hover:shadow-xl group">
-          <div className="w-11 h-11 rounded-lg bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-            <Compass className="w-5 h-5" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-serif text-lg text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2">
-              Materiales Nobles
-            </h3>
-            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
-              Piedra local labrada a mano, vigas de abeto centenario restauradas a cepillo y textiles de lino orgánico belga. Una conjunción honesta y sobria que abraza al viajero.
-            </p>
-          </div>
-        </div>
 
-        {/* Card 2: Aguas de Deshielo */}
-        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 rounded-xl transition-all duration-500 hover:border-[#2C3627] hover:shadow-xl group">
-          <div className="w-11 h-11 rounded-lg bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-            <Thermometer className="w-5 h-5" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-serif text-lg text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2">
-              Bañeras y Aguas Termales
-            </h3>
-            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
-              Estancias provistas de tinas profundas labradas en madera de cedro aromático o bañeras esculpidas en bloques de piedra. Disfrute de baños nutridos por manantiales locales.
-            </p>
-          </div>
-        </div>
-
-        {/* Card 3: Calidez Primitiva */}
-        <div className="p-8 bg-[#FDFCFB] border border-[#E5E1D8] space-y-5 rounded-xl transition-all duration-500 hover:border-[#2C3627] hover:shadow-xl group">
-          <div className="w-11 h-11 rounded-lg bg-[#2C3627]/5 flex items-center justify-center text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-            <Flame className="w-5 h-5" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-serif text-lg text-[#2C3627] font-medium border-b border-[#E5E1D8]/60 pb-2">
-              Calidez de Leña
-            </h3>
-            <p className="text-xs text-[#8C857B] leading-relaxed font-light font-sans">
-              Estufas de biomasa de última generación y chimeneas tradicionales suspendidas. Suministramos cestas de leña seca de abedul de nuestros bosques sostenibles.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* 3. ROOMS CATALOG (GRID VIEW WITHOUT SIDEBAR FORM) */}
       <section id="rooms-section" className="max-w-7xl mx-auto px-4 space-y-8 scroll-mt-28">
