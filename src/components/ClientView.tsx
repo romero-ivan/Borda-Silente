@@ -191,7 +191,7 @@ const AMENITY_DETAILS: Record<string, {
       'Cobertura wifi en todas las estancias',
       'Acceso totalmente gratuito e ilimitado'
     ],
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=70'
+    image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=600&q=70'
   },
   breakfast: {
     badge: 'Gastronomía Local',
@@ -215,7 +215,7 @@ const AMENITY_DETAILS: Record<string, {
       'Cesta de cortesía repuesta a diario',
       'Kit de encendido ecológico y seguro'
     ],
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=70'
+    image: 'https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&w=600&q=70'
   },
   tub: {
     badge: 'Bienestar Orgánico',
@@ -227,7 +227,7 @@ const AMENITY_DETAILS: Record<string, {
       'Agua pura de deshielo sin químicos',
       'Sales de baño y aceites esenciales locales'
     ],
-    image: 'https://images.unsplash.com/photo-1515263487990-61b07816b324?auto=format&fit=crop&w=600&q=70'
+    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=70'
   }
 };
 
