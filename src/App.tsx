@@ -70,9 +70,8 @@ export default function App() {
     let unsubSubcontractors: () => void;
     let unsubChats: () => void;
 
-    const setupSync = async () => {
+    const checkAndSeedDatabase = async () => {
       try {
-        // 1. Check and seed Firestore if empty (only checked/seeded once)
         const roomsRef = collection(db, 'rooms');
         const roomsSnap = await getDocs(roomsRef);
         const needsImageMigration = !roomsSnap.empty && roomsSnap.docs.some(doc => {
@@ -81,7 +80,7 @@ export default function App() {
         });
 
         if (roomsSnap.empty || needsImageMigration) {
-          console.log('Seeding initial Borda Silente data to Firestore...');
+          console.log('Seeding initial Borda Silente data to Firestore in background...');
           for (const r of INITIAL_DATA.rooms) {
             await setDoc(doc(db, 'rooms', r.id.toString()), r);
           }
@@ -97,7 +96,17 @@ export default function App() {
           for (const chat of INITIAL_DATA.chats) {
             await setDoc(doc(db, 'chats', chat.id), chat);
           }
+          console.log('Background database seeding/migration complete.');
         }
+      } catch (err) {
+        console.error('Background database check/seeding failed:', err);
+      }
+    };
+
+    const setupSync = async () => {
+      try {
+        // 1. Check and seed/migrate Firestore in background without blocking setup
+        checkAndSeedDatabase();
 
         // 2. Set up realtime listeners (onSnapshot resolves immediately from IndexedDB cache if available)
         unsubRooms = onSnapshot(collection(db, 'rooms'), (snapshot) => {
