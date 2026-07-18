@@ -215,7 +215,7 @@ const AMENITY_DETAILS: Record<string, {
       'Cesta de cortesía repuesta a diario',
       'Kit de encendido ecológico y seguro'
     ],
-    image: 'https://images.unsplash.com/photo-1604014237800-1c9102c219da?auto=format&fit=crop&w=600&q=70'
+    image: '/fireplace_cabin.jpg'
   },
   tub: {
     badge: 'Bienestar Orgánico',
@@ -227,7 +227,7 @@ const AMENITY_DETAILS: Record<string, {
       'Agua pura de deshielo sin químicos',
       'Sales de baño y aceites esenciales locales'
     ],
-    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=70'
+    image: '/hottub_mountain.jpg'
   }
 };
 
