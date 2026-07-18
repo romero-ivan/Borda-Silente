@@ -55,26 +55,62 @@ interface ImageCarouselProps {
 
 function ImageCarousel({ images, alt, isOccupied, occupiedText, isLCP }: ImageCarouselProps) {
   const [index, setIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  const handleNext = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     setIndex((prev) => (prev + 1) % images.length);
   };
 
-  const handlePrev = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     setIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // Touch handlers for mobile swipe
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrev();
+    }
+  };
+
   return (
-    <div className="relative aspect-[16/10] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner group/carousel">
+    <div 
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="relative aspect-[16/10] overflow-hidden bg-[#F5F3EF] rounded-lg shadow-inner group/carousel touch-pan-y"
+    >
       <img 
         src={images[index]} 
         alt={`${alt} - Imagen ${index + 1}`}
         referrerPolicy="no-referrer"
-        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out"
+        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700 ease-out select-none pointer-events-none"
         loading={isLCP ? "eager" : "lazy"}
         {...{ fetchpriority: isLCP ? "high" : "low" }}
         decoding={isLCP ? "sync" : "async"}
@@ -86,7 +122,7 @@ function ImageCarousel({ images, alt, isOccupied, occupiedText, isLCP }: ImageCa
           <button 
             type="button"
             onClick={handlePrev}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7.5 h-7.5 rounded-full bg-[#121411]/60 text-white flex items-center justify-center hover:bg-[#121411]/80 hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer select-none"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7.5 h-7.5 rounded-full bg-[#121411]/60 text-white flex items-center justify-center hover:bg-[#121411]/80 hover:scale-105 active:scale-95 transition-all opacity-100 md:opacity-0 md:group-hover/carousel:opacity-100 cursor-pointer select-none"
             aria-label="Imagen anterior"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -94,7 +130,7 @@ function ImageCarousel({ images, alt, isOccupied, occupiedText, isLCP }: ImageCa
           <button 
             type="button"
             onClick={handleNext}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7.5 h-7.5 rounded-full bg-[#121411]/60 text-white flex items-center justify-center hover:bg-[#121411]/80 hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/carousel:opacity-100 cursor-pointer select-none"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7.5 h-7.5 rounded-full bg-[#121411]/60 text-white flex items-center justify-center hover:bg-[#121411]/80 hover:scale-105 active:scale-95 transition-all opacity-100 md:opacity-0 md:group-hover/carousel:opacity-100 cursor-pointer select-none"
             aria-label="Siguiente imagen"
           >
             <ChevronRight className="w-4 h-4" />
