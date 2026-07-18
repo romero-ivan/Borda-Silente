@@ -44,6 +44,7 @@ interface ReceptionistViewProps {
     checkOut: string;
     platform: BookingPlatform;
   }) => Promise<void>;
+  loading?: boolean;
 }
 
 interface TaskItem {
@@ -62,7 +63,8 @@ export default function ReceptionistView({
   chatMessages,
   onSendMessage,
   onUpdateRoomStatus,
-  onBook
+  onBook,
+  loading
 }: ReceptionistViewProps) {
   // Navigation: 'matrix' (dashboard), 'ledger' (history/billing), 'tasks' (work orders), 'walkin' (front desk checkin), 'chat' (customer help)
   const [activeTab, setActiveTab] = useState<'matrix' | 'ledger' | 'tasks' | 'walkin' | 'chat'>('matrix');
