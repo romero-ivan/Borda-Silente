@@ -409,6 +409,23 @@ export default function App() {
             </span>
             <a 
               href="#booking-engine"
+              onClick={(e) => {
+                e.preventDefault();
+                const engine = document.getElementById('booking-engine');
+                if (engine) {
+                  engine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  // Highlight feedback
+                  engine.classList.add('ring-4', 'ring-[#E5B181]/65');
+                  setTimeout(() => {
+                    engine.classList.remove('ring-4', 'ring-[#E5B181]/65');
+                  }, 1800);
+                  // Focus the check-in input
+                  const checkInInput = document.getElementById('search-check-in');
+                  if (checkInInput) {
+                    (checkInInput as HTMLInputElement).focus();
+                  }
+                }
+              }}
               className="bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 font-semibold rounded-xs shadow-xs"
             >
               Reservar Ahora
@@ -521,7 +538,7 @@ export default function App() {
 
       {/* 6. Standard Utility Footer with hidden Portal Staff switcher */}
       {currentRole === 'consumer' && (
-        <footer id="contact-section" className="bg-[#1C2319] text-[#E5E1D8]/70 border-t border-[#E5E1D8]/10 py-16 px-6 sm:px-12 mt-20 print:hidden font-sans">
+        <footer id="contact-section" className="bg-[#1C2319] text-[#E5E1D8]/70 border-t border-[#E5E1D8]/10 py-16 px-6 sm:px-12 mt-20 print:hidden font-sans scroll-mt-28">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-10">
             {/* Column 1: Logo & Vision */}
             <div className="md:col-span-4 space-y-4">

@@ -202,7 +202,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
         </div>
 
         {/* Overlay Booking Engine Bar (Horizontal on Desktop, Single-column on Mobile) */}
-        <div id="booking-engine" className="relative z-10 w-full max-w-5xl bg-[#FDFCFB] border border-[#E5E1D8] rounded-xl shadow-2xl p-4 sm:p-5 text-[#2D2D2D] -mb-10 sm:-mb-14">
+        <div id="booking-engine" className="relative z-10 w-full max-w-5xl bg-[#FDFCFB] border border-[#E5E1D8] rounded-xl shadow-2xl p-4 sm:p-5 text-[#2D2D2D] -mb-10 sm:-mb-14 scroll-mt-28 transition-all duration-300">
           <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
             
             {/* Check-In Date */}
@@ -212,6 +212,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                 Entrada
               </label>
               <input 
+                id="search-check-in"
                 type="date" 
                 value={searchCheckIn}
                 onChange={(e) => setSearchCheckIn(e.target.value)}
@@ -336,7 +337,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
       </section>
 
       {/* 3. ROOMS CATALOG (GRID VIEW WITHOUT SIDEBAR FORM) */}
-      <section id="rooms-section" className="max-w-7xl mx-auto px-4 space-y-8 scroll-mt-20">
+      <section id="rooms-section" className="max-w-7xl mx-auto px-4 space-y-8 scroll-mt-28">
         <div className="border-t border-[#E5E1D8] pt-14 flex flex-col md:flex-row justify-between items-baseline gap-4">
           <div className="space-y-1.5">
             <h2 className="font-serif text-3.5xl sm:text-4xl text-[#2C3627] font-light">Nuestras Estancias</h2>
@@ -500,7 +501,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
       </section>
 
       {/* 4. INSTALACIONES Y SERVICIOS (Amenities section with icons) */}
-      <section id="amenities-section" className="max-w-7xl mx-auto px-4 space-y-12 scroll-mt-20">
+      <section id="amenities-section" className="max-w-7xl mx-auto px-4 space-y-12 scroll-mt-28">
         <div className="border-t border-[#E5E1D8] pt-14 text-center space-y-1.5">
           <h2 className="font-serif text-3.5xl sm:text-4xl text-[#2C3627] font-light">Experiencias y Servicios</h2>
           <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-widest">El descanso en sintonía con el entorno silvestre</p>
@@ -554,7 +555,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
       </section>
 
       {/* Culinary section: La Cocina Silente */}
-      <section id="gastronomy-section" className="max-w-7xl mx-auto px-4 space-y-12 scroll-mt-20">
+      <section id="gastronomy-section" className="max-w-7xl mx-auto px-4 space-y-12 scroll-mt-28">
         <div className="border-t border-[#E5E1D8] pt-14 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1.5">
             <h2 className="font-serif text-3.5xl text-[#2C3627] font-light">La Cocina Silente</h2>
@@ -634,7 +635,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
       </section>
 
       {/* 5. PRUEBA SOCIAL (TripAdvisor/Google reviews simulated widget) */}
-      <section id="social-proof-section" className="max-w-7xl mx-auto px-4 space-y-10 scroll-mt-20">
+      <section id="social-proof-section" className="max-w-7xl mx-auto px-4 space-y-10 scroll-mt-28">
         <div className="border-t border-[#E5E1D8] pt-14 text-center space-y-1.5">
           <h2 className="font-serif text-3.5xl sm:text-4xl text-[#2C3627] font-light">La Opinión de Nuestros Huéspedes</h2>
           <p className="font-mono text-[9px] text-[#8C857B] uppercase tracking-widest">Respaldo y opiniones reales de viajeros en el Pirineo</p>
