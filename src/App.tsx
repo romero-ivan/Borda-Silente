@@ -382,20 +382,20 @@ export default function App() {
       
       {/* 2. Top Navigation Bar (Sticky & Standard Compliant) */}
       {currentRole === 'consumer' ? (
-        <header className="fixed top-0 left-0 right-0 z-50 px-6 border-b border-white/10 flex justify-between items-center bg-[#121411]/95 backdrop-blur-md print:hidden h-16">
+        <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 border-b border-white/10 flex justify-between items-center bg-[#121411]/95 backdrop-blur-md print:hidden h-16">
           
-          {/* Left Block: Brand Identity (Constrained width to balance layout) */}
-          <div className="flex items-center gap-3 w-1/3 min-w-[200px]">
-            <div className="w-9 h-9 border border-white/20 flex items-center justify-center bg-transparent transition-all">
-              <Compass className="w-5 h-5 text-[#E5B181]" />
+          {/* Left Block: Brand Identity (Constrained width only on desktop to balance layout) */}
+          <div className="flex items-center gap-2.5 md:w-1/3 md:min-w-[200px] shrink-0">
+            <div className="w-8.5 h-8.5 border border-white/20 flex items-center justify-center bg-transparent transition-all">
+              <Compass className="w-4.5 h-4.5 text-[#E5B181]" />
             </div>
             <div>
-              <span className="font-serif text-base font-bold tracking-wider uppercase text-white block leading-tight">Borda Silente</span>
-              <span className="font-sans text-[9px] uppercase text-[#FAF8F5]/60 block tracking-[0.1em] mt-0.5 font-semibold leading-none">Refugio de Montaña</span>
+              <span className="font-serif text-sm sm:text-base font-bold tracking-wider uppercase text-white block leading-tight">Borda Silente</span>
+              <span className="font-sans text-[8px] sm:text-[9px] uppercase text-[#FAF8F5]/60 block tracking-[0.1em] mt-0.5 font-semibold leading-none">Refugio de Montaña</span>
             </div>
           </div>
 
-          {/* Central Block: Navigation Links (Geometrically Centered via absolute positioning) */}
+          {/* Central Block: Navigation Links (Geometrically Centered via absolute positioning on desktop) */}
           <nav className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-8 font-sans text-[13px] text-[#FAF8F5] font-semibold tracking-wide">
             <a href="#rooms-section" className="hover:text-[#E5B181] transition-colors">Habitaciones</a>
             <a href="#amenities-section" className="hover:text-[#E5B181] transition-colors">Servicios</a>
@@ -404,8 +404,8 @@ export default function App() {
             <a href="#contact-section" className="hover:text-[#E5B181] transition-colors">Ubicación</a>
           </nav>
 
-          {/* Right Block: Localization & CTA Button (Constrained width to align layouts) */}
-          <div className="flex items-center justify-end gap-5 w-1/3 min-w-[200px]">
+          {/* Right Block: Localization & CTA Button (Constrained width only on desktop to align layouts) */}
+          <div className="flex items-center justify-end gap-3 sm:gap-5 md:w-1/3 md:min-w-[200px] shrink-0">
             <span className="hidden sm:inline font-sans text-xs text-[#FAF8F5]/70 hover:text-white cursor-pointer transition-colors font-bold tracking-wider">
               ES | EUR
             </span>
@@ -428,7 +428,7 @@ export default function App() {
                   }
                 }
               }}
-              className="bg-[#E5B181] hover:bg-[#FAF8F5] text-[#121411] border border-[#E5B181] px-4.5 py-2 font-sans text-xs uppercase tracking-wider transition-all duration-300 font-bold rounded-md shadow-xs hover:shadow-md"
+              className="bg-[#E5B181] hover:bg-[#FAF8F5] text-[#121411] border border-[#E5B181] px-3.5 py-1.5 sm:px-4.5 sm:py-2 font-sans text-[10px] sm:text-xs uppercase tracking-wider transition-all duration-300 font-bold rounded-md shadow-xs hover:shadow-md"
             >
               Reservar Ahora
             </a>

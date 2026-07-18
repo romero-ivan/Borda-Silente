@@ -202,7 +202,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
         </div>
 
         {/* Overlay Booking Engine Bar (Horizontal on Desktop, Single-column on Mobile) */}
-        <div id="booking-engine" className="relative z-10 w-full max-w-5xl bg-[#FDFCFB] border border-[#E5E1D8] rounded-xl shadow-2xl p-4 sm:p-5 text-[#2D2D2D] -mb-10 sm:-mb-14 scroll-mt-28 transition-all duration-300">
+        <div id="booking-engine" className="relative z-10 w-full max-w-5xl bg-[#FDFCFB] border border-[#E5E1D8] rounded-xl shadow-2xl p-5 pb-7 sm:p-6 text-[#2D2D2D] -mb-10 sm:-mb-14 scroll-mt-28 transition-all duration-300">
           <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
             
             {/* Check-In Date */}
@@ -280,7 +280,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
             {/* Search Button (CTA) */}
             <button 
               type="submit"
-              className="lg:self-end bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-6 py-3 font-mono text-xs uppercase tracking-widest transition-all duration-300 font-bold rounded-md cursor-pointer shadow-sm text-center flex items-center justify-center gap-2 h-[42px] mt-2 lg:mt-0"
+              className="lg:self-end bg-[#2C3627] hover:bg-[#E5B181] hover:text-[#2D2D2D] text-white border border-[#2C3627] px-6 py-3 font-mono text-xs uppercase tracking-widest transition-all duration-300 font-bold rounded-md cursor-pointer shadow-sm text-center flex items-center justify-center gap-2 min-h-[44px] mt-3 lg:mt-0 w-full lg:w-auto"
             >
               Buscar Disponibilidad
             </button>
