@@ -174,6 +174,63 @@ function ImageCarousel({ images, alt, isOccupied, occupiedText, isLCP }: ImageCa
   );
 }
 
+const AMENITY_DETAILS: Record<string, {
+  badge: string;
+  title: string;
+  description: string;
+  features: string[];
+  image: string;
+}> = {
+  wifi: {
+    badge: 'Conectividad Premium',
+    title: 'Conexión Satelital Starlink',
+    description: 'En Borda Silente entendemos que desconectar no significa estar incomunicados. Disponemos de cobertura satelital Starlink de última generación integrada en todo el refugio, ofreciendo velocidades de hasta 250 Mbps con baja latencia. Ideal para estancias de trabajo remoto (workation), videoconferencias o simplemente compartir tus momentos en la montaña con la máxima estabilidad.',
+    features: [
+      'Velocidad de bajada: 220-250 Mbps',
+      'Baja latencia estable (<35ms)',
+      'Cobertura wifi en todas las estancias',
+      'Acceso totalmente gratuito e ilimitado'
+    ],
+    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=70'
+  },
+  breakfast: {
+    badge: 'Gastronomía Local',
+    title: 'Desayuno Orgánico de los Pirineos',
+    description: 'Comienza el día con el aroma del pan artesano horneado al amanecer en nuestro horno de piedra. Servimos un completo desayuno buffet elaborado con ingredientes 100% ecológicos procedentes del Valle de Ansó: huevos de granja campera, mermeladas caseras de frutos silvestres, quesos curados del Pirineo y repostería artesana recién hecha.',
+    features: [
+      'Pan de masa madre horneado al amanecer',
+      'Frutas rojas y mermeladas ecológicas',
+      'Quesos y embutidos del Valle de Ansó',
+      'Opciones veganas y sin gluten disponibles'
+    ],
+    image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=70'
+  },
+  fireplace: {
+    badge: 'Calidez Ecológica',
+    title: 'Hogar de Leña Tradicional',
+    description: 'No hay mayor placer tras una jornada de montaña que el crepitar de la leña ardiendo. Cada cabaña y suite dispone de su propia estufa de biomasa de alto rendimiento o chimenea de hierro suspendida. Te suministramos diariamente una cesta de troncos secos de abedul de nuestros bosques sostenibles y pastillas ecológicas para que disfrutes del fuego.',
+    features: [
+      'Leña de abedul de combustión lenta',
+      'Estufas y chimeneas de alto rendimiento',
+      'Cesta de cortesía repuesta a diario',
+      'Kit de encendido ecológico y seguro'
+    ],
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=70'
+  },
+  tub: {
+    badge: 'Bienestar Orgánico',
+    title: 'Tinas Calientes de Cedro',
+    description: 'Disfruta de un baño termal reparador bajo el cielo estrellado del Pirineo. Nuestras tinas de inmersión profunda están esculpidas en madera de cedro rojo canadiense o piedra natural. Están provistas de agua purificada de deshielo calentada a 38°C constantes mediante caldera de leña ecológica. Un bálsamo perfecto enriquecido con aceites esenciales.',
+    features: [
+      'Madera de cedro rojo aromático',
+      'Temperatura constante de 38°C',
+      'Agua pura de deshielo sin químicos',
+      'Sales de baño y aceites esenciales locales'
+    ],
+    image: 'https://images.unsplash.com/photo-1515263487990-61b07816b324?auto=format&fit=crop&w=600&q=70'
+  }
+};
+
 interface ClientViewProps {
   rooms: Room[];
   bookings: Booking[];
@@ -205,6 +262,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
   const [bookingError, setBookingError] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState('');
   const [lastBookedEmail, setLastBookedEmail] = useState('');
+  const [selectedAmenity, setSelectedAmenity] = useState<string | null>(null);
 
   // Selected Room for Modal
   const modalRoom = rooms.find(r => r.id === bookingRoomId);
@@ -669,8 +727,15 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center max-w-5xl mx-auto pt-4">
           {/* Wifi */}
-          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
+          <div 
+            onClick={() => setSelectedAmenity(prev => prev === 'wifi' ? null : 'wifi')}
+            className={`group space-y-3.5 p-5 bg-[#FDFCFB] border rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none ${
+              selectedAmenity === 'wifi' ? 'border-[#E5B181] ring-2 ring-[#E5B181]/25 bg-[#FAF9F6]' : 'border-[#E5E1D8]/50'
+            }`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto shadow-3xs transition-all duration-500 ${
+              selectedAmenity === 'wifi' ? 'bg-[#2C3627] text-white' : 'bg-[#2C3627]/5 text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white'
+            }`}>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 24 24" 
@@ -684,11 +749,17 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                 {/* Dot */}
                 <path d="M12 20h.01" className="stroke-[3.5px]" />
                 {/* Small wave */}
-                <path d="M8.5 16.5a5 5 0 0 1 7 0" className="opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.15s] transition-opacity duration-300" />
+                <path d="M8.5 16.5a5 5 0 0 1 7 0" className={`transition-opacity duration-300 ${
+                  selectedAmenity === 'wifi' ? 'animate-[wifi-pulse_1s_infinite] [animation-delay:0.15s]' : 'opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.15s]'
+                }`} />
                 {/* Medium wave */}
-                <path d="M5 13a10 10 0 0 1 14 0" className="opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.3s] transition-opacity duration-300" />
+                <path d="M5 13a10 10 0 0 1 14 0" className={`transition-opacity duration-300 ${
+                  selectedAmenity === 'wifi' ? 'animate-[wifi-pulse_1s_infinite] [animation-delay:0.3s]' : 'opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.3s]'
+                }`} />
                 {/* Large wave */}
-                <path d="M1.5 9.5a15 15 0 0 1 21 0" className="opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.45s] transition-opacity duration-300" />
+                <path d="M1.5 9.5a15 15 0 0 1 21 0" className={`transition-opacity duration-300 ${
+                  selectedAmenity === 'wifi' ? 'animate-[wifi-pulse_1s_infinite] [animation-delay:0.45s]' : 'opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.45s]'
+                }`} />
               </svg>
             </div>
             <div>
@@ -698,9 +769,18 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
           </div>
 
           {/* Desayuno */}
-          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-              <Sparkles className="w-5.5 h-5.5 transition-all duration-700 ease-out group-hover:scale-120 group-hover:rotate-45 group-hover:text-[#E5B181]" />
+          <div 
+            onClick={() => setSelectedAmenity(prev => prev === 'breakfast' ? null : 'breakfast')}
+            className={`group space-y-3.5 p-5 bg-[#FDFCFB] border rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none ${
+              selectedAmenity === 'breakfast' ? 'border-[#E5B181] ring-2 ring-[#E5B181]/25 bg-[#FAF9F6]' : 'border-[#E5E1D8]/50'
+            }`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto shadow-3xs transition-all duration-500 ${
+              selectedAmenity === 'breakfast' ? 'bg-[#2C3627] text-white' : 'bg-[#2C3627]/5 text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white'
+            }`}>
+              <Sparkles className={`w-5.5 h-5.5 transition-all duration-700 ease-out group-hover:scale-120 group-hover:rotate-45 group-hover:text-[#E5B181] ${
+                selectedAmenity === 'breakfast' ? 'scale-120 rotate-45 text-[#E5B181]' : ''
+              }`} />
             </div>
             <div>
               <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Desayuno Orgánico</h4>
@@ -709,9 +789,18 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
           </div>
 
           {/* Calefacción chimenea */}
-          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-              <Flame className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-1 group-hover:text-amber-500" />
+          <div 
+            onClick={() => setSelectedAmenity(prev => prev === 'fireplace' ? null : 'fireplace')}
+            className={`group space-y-3.5 p-5 bg-[#FDFCFB] border rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none ${
+              selectedAmenity === 'fireplace' ? 'border-[#E5B181] ring-2 ring-[#E5B181]/25 bg-[#FAF9F6]' : 'border-[#E5E1D8]/50'
+            }`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto shadow-3xs transition-all duration-500 ${
+              selectedAmenity === 'fireplace' ? 'bg-[#2C3627] text-white' : 'bg-[#2C3627]/5 text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white'
+            }`}>
+              <Flame className={`w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-1 group-hover:text-amber-500 ${
+                selectedAmenity === 'fireplace' ? 'scale-110 -translate-y-1 text-amber-500' : ''
+              }`} />
             </div>
             <div>
               <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Hogar de Leña</h4>
@@ -720,9 +809,18 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
           </div>
 
           {/* Tinas de Cedro */}
-          <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
-            <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-              <Thermometer className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:text-red-400" />
+          <div 
+            onClick={() => setSelectedAmenity(prev => prev === 'tub' ? null : 'tub')}
+            className={`group space-y-3.5 p-5 bg-[#FDFCFB] border rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none ${
+              selectedAmenity === 'tub' ? 'border-[#E5B181] ring-2 ring-[#E5B181]/25 bg-[#FAF9F6]' : 'border-[#E5E1D8]/50'
+            }`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto shadow-3xs transition-all duration-500 ${
+              selectedAmenity === 'tub' ? 'bg-[#2C3627] text-white' : 'bg-[#2C3627]/5 text-[#2C3627] group-hover:bg-[#2C3627] group-hover:text-white'
+            }`}>
+              <Thermometer className={`w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-0.5 group-hover:text-red-400 ${
+                selectedAmenity === 'tub' ? 'scale-110 -translate-y-0.5 text-red-400' : ''
+              }`} />
             </div>
             <div>
               <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Tinas Calientes</h4>
@@ -730,6 +828,66 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
             </div>
           </div>
         </div>
+
+        {/* Detailed Amenity Info Panel */}
+        <AnimatePresence mode="wait">
+          {selectedAmenity && (
+            <motion.div
+              key={selectedAmenity}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+              className="relative max-w-5xl mx-auto bg-[#FAF9F6] border border-[#E5E1D8] rounded-2xl shadow-lg p-6 sm:p-8 mt-8 overflow-hidden text-[#2D2D2D]"
+            >
+              {/* Close button */}
+              <button 
+                onClick={() => setSelectedAmenity(null)}
+                className="absolute top-4 right-4 text-[#8C857B] hover:text-[#2C3627] cursor-pointer p-1 rounded-full hover:bg-[#F5F3EF] transition-all z-10"
+                aria-label="Cerrar detalles"
+              >
+                <X className="w-4.5 h-4.5" />
+              </button>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                {/* Text Content */}
+                <div className="md:col-span-7 space-y-4 pr-0 md:pr-4">
+                  <span className="font-mono text-[9px] text-[#FAF8F5] bg-[#2C3627] px-3.5 py-1.5 tracking-wider uppercase font-semibold rounded-full shadow-3xs inline-block">
+                    {AMENITY_DETAILS[selectedAmenity].badge}
+                  </span>
+                  <h3 className="font-serif text-2xl sm:text-3xl text-[#2C3627] font-medium leading-snug">
+                    {AMENITY_DETAILS[selectedAmenity].title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#8C857B] leading-relaxed font-light font-sans">
+                    {AMENITY_DETAILS[selectedAmenity].description}
+                  </p>
+                  
+                  <div className="pt-4 border-t border-[#E5E1D8]/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {AMENITY_DETAILS[selectedAmenity].features.map((feat, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs text-[#2D2D2D] font-light">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#E5B181] shrink-0" />
+                        <span className="font-sans">{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Image Showcase */}
+                <div className="md:col-span-5 relative aspect-[4/3] rounded-lg overflow-hidden shadow-md">
+                  <img 
+                    src={AMENITY_DETAILS[selectedAmenity].image}
+                    alt={AMENITY_DETAILS[selectedAmenity].title}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Culinary section: La Cocina Silente */}
