@@ -382,29 +382,29 @@ export default function App() {
       
       {/* 2. Top Navigation Bar (Sticky & Standard Compliant) */}
       {currentRole === 'consumer' ? (
-        <header className="fixed top-0 left-0 right-0 z-50 px-6 py-3.5 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB]/90 backdrop-blur-md print:hidden">
+        <header className="fixed top-0 left-0 right-0 z-50 px-6 py-3.5 border-b border-[#E5E1D8] flex justify-between items-center bg-[#FDFCFB]/95 backdrop-blur-md print:hidden">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 border border-[#2C3627] flex items-center justify-center bg-transparent transition-all">
               <Compass className="w-5 h-5 text-[#2C3627]" />
             </div>
             <div>
-              <span className="font-serif text-base font-semibold tracking-widest uppercase text-[#2D2D2D] block">Borda Silente</span>
-              <span className="font-mono text-[8px] uppercase text-[#8C857B] block tracking-[0.2em] mt-0.5">Refugio de Montaña</span>
+              <span className="font-serif text-base font-bold tracking-widest uppercase text-[#2C3627] block">Borda Silente</span>
+              <span className="font-mono text-[8px] uppercase text-[#2C3627]/80 block tracking-[0.2em] mt-0.5 font-medium">Refugio de Montaña</span>
             </div>
           </div>
 
-          {/* Central links for navigation (Desktop only, clean and minimal) */}
-          <nav className="hidden md:flex items-center gap-8 font-mono text-[10px] uppercase tracking-widest text-[#8C857B]">
-            <a href="#rooms-section" className="hover:text-[#2C3627] transition-colors">Habitaciones</a>
-            <a href="#amenities-section" className="hover:text-[#2C3627] transition-colors">Servicios</a>
-            <a href="#gastronomy-section" className="hover:text-[#2C3627] transition-colors">Gastronomía</a>
-            <a href="#social-proof-section" className="hover:text-[#2C3627] transition-colors">Reseñas</a>
-            <a href="#contact-section" className="hover:text-[#2C3627] transition-colors">Ubicación</a>
+          {/* Central links for navigation (Desktop only, clean and minimal with high contrast) */}
+          <nav className="hidden md:flex items-center gap-8 font-mono text-[10px] uppercase tracking-widest text-[#2C3627] font-bold">
+            <a href="#rooms-section" className="hover:text-[#E5B181] transition-colors">Habitaciones</a>
+            <a href="#amenities-section" className="hover:text-[#E5B181] transition-colors">Servicios</a>
+            <a href="#gastronomy-section" className="hover:text-[#E5B181] transition-colors">Gastronomía</a>
+            <a href="#social-proof-section" className="hover:text-[#E5B181] transition-colors">Reseñas</a>
+            <a href="#contact-section" className="hover:text-[#E5B181] transition-colors">Ubicación</a>
           </nav>
 
           {/* Right Side: Localization & CTA Book Now Button */}
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline font-mono text-[9px] text-[#8C857B] uppercase tracking-wider bg-[#F5F3EF] px-2 py-1 border border-[#E5E1D8]/60">
+            <span className="hidden sm:inline font-mono text-[9px] text-[#2C3627] uppercase tracking-wider bg-[#F5F3EF] px-2.5 py-1.5 border border-[#2C3627]/25 font-bold">
               ES | EUR
             </span>
             <a 
