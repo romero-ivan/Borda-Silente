@@ -717,7 +717,25 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
           {/* Wifi */}
           <div className="group space-y-3.5 p-5 bg-[#FDFCFB] border border-[#E5E1D8]/50 rounded-xl hover:border-[#2C3627] hover:shadow-md transition-all duration-500 cursor-pointer select-none">
             <div className="w-12 h-12 bg-[#2C3627]/5 text-[#2C3627] rounded-full flex items-center justify-center mx-auto shadow-3xs group-hover:bg-[#2C3627] group-hover:text-white transition-all duration-500">
-              <Wifi className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-110 group-hover:rotate-12" />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.25" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="w-5.5 h-5.5 transition-all duration-500 ease-out group-hover:scale-105"
+              >
+                {/* Dot */}
+                <path d="M12 20h.01" className="stroke-[3.5px]" />
+                {/* Small wave */}
+                <path d="M8.5 16.5a5 5 0 0 1 7 0" className="opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.15s] transition-opacity duration-300" />
+                {/* Medium wave */}
+                <path d="M5 13a10 10 0 0 1 14 0" className="opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.3s] transition-opacity duration-300" />
+                {/* Large wave */}
+                <path d="M1.5 9.5a15 15 0 0 1 21 0" className="opacity-40 group-hover:animate-[wifi-pulse_1s_infinite] [animation-delay:0.45s] transition-opacity duration-300" />
+              </svg>
             </div>
             <div>
               <h4 className="font-serif text-sm font-medium text-[#2C3627] group-hover:text-black transition-colors duration-300">Conexión Satelital</h4>
