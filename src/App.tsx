@@ -421,11 +421,13 @@ export default function App() {
                   setTimeout(() => {
                     engine.classList.remove('ring-4', 'ring-[#E5B181]/65');
                   }, 1800);
-                  // Focus the check-in input
-                  const checkInInput = document.getElementById('search-check-in');
-                  if (checkInInput) {
-                    (checkInInput as HTMLInputElement).focus();
-                  }
+                  // Focus the check-in input after scroll completes to prevent layout fighting
+                  setTimeout(() => {
+                    const checkInInput = document.getElementById('search-check-in');
+                    if (checkInInput) {
+                      (checkInInput as HTMLInputElement).focus();
+                    }
+                  }, 500);
                 }
               }}
               className="bg-[#E5B181] hover:bg-[#FAF8F5] text-[#121411] border border-[#E5B181] px-3.5 py-1.5 sm:px-4.5 sm:py-2 font-sans text-[10px] sm:text-xs uppercase tracking-wider transition-all duration-300 font-bold rounded-md shadow-xs hover:shadow-md"

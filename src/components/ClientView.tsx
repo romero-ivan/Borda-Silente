@@ -216,7 +216,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                 type="date" 
                 value={searchCheckIn}
                 onChange={(e) => setSearchCheckIn(e.target.value)}
-                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs font-mono px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 transition-all cursor-pointer"
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-base md:text-xs font-mono px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 transition-all cursor-pointer"
                 min="2026-01-01"
               />
             </div>
@@ -234,7 +234,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
                 type="date" 
                 value={searchCheckOut}
                 onChange={(e) => setSearchCheckOut(e.target.value)}
-                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs font-mono px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 transition-all cursor-pointer"
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-base md:text-xs font-mono px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] focus:ring-1 focus:ring-[#2C3627]/30 transition-all cursor-pointer"
                 min={searchCheckIn}
               />
             </div>
@@ -251,7 +251,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
               <select 
                 value={searchGuests}
                 onChange={(e) => setSearchGuests(Number(e.target.value))}
-                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] cursor-pointer"
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-base md:text-xs px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] cursor-pointer"
               >
                 <option value={1}>1 Adulto</option>
                 <option value={2}>2 Adultos</option>
@@ -269,7 +269,7 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
               <select 
                 value={searchChildren}
                 onChange={(e) => setSearchChildren(Number(e.target.value))}
-                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-xs px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] cursor-pointer"
+                className="w-full bg-[#FAF9F6] border border-[#E5E1D8] text-base md:text-xs px-3 py-2.5 rounded-md focus:outline-hidden focus:border-[#2C3627] cursor-pointer"
               >
                 <option value={0}>Sin Niños</option>
                 <option value={1}>1 Niño</option>
