@@ -264,6 +264,16 @@ export default function ClientView({ rooms, bookings, onBook, onOpenInvoice, loa
   const [lastBookedEmail, setLastBookedEmail] = useState('');
   const [selectedAmenity, setSelectedAmenity] = useState<string | null>(null);
 
+  // Preload all key images (amenities & room carousels) into browser memory cache for instant render
+  useEffect(() => {
+    const amenityImages = Object.values(AMENITY_DETAILS).map(item => item.image);
+    const roomImages = Object.values(ROOM_IMAGES_MAP).flat();
+    [...amenityImages, ...roomImages].forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   // Selected Room for Modal
   const modalRoom = rooms.find(r => r.id === bookingRoomId);
 
