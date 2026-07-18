@@ -191,7 +191,7 @@ const AMENITY_DETAILS: Record<string, {
       'Cobertura wifi en todas las estancias',
       'Acceso totalmente gratuito e ilimitado'
     ],
-    image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=600&q=70'
+    image: '/starlink_night.jpg'
   },
   breakfast: {
     badge: 'Gastronomía Local',
